@@ -1,0 +1,86 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root,
+[data-theme="dark"] {
+  --bg-primary: #1e1e2e;
+  --bg-secondary: #313244;
+  --bg-tertiary: #45475a;
+  --bg-card: #181825;
+  --bg-code: #11111b;
+  --border-primary: #45475a;
+  --border-secondary: #585b70;
+  --text-primary: #cdd6f4;
+  --text-secondary: #a6adc8;
+  --text-muted: #6c7086;
+  --accent: #89b4fa;
+  --accent-text: #1e1e2e;
+  --success: #a6e3a1;
+  --warning: #fab387;
+  --danger: #f38ba8;
+  --purple: #cba6f7;
+  --pink: #f5c2e7;
+  --yellow: #f9e2af;
+}
+
+[data-theme="light"] {
+  --bg-primary: #eff1f5;
+  --bg-secondary: #e6e9ef;
+  --bg-tertiary: #ccd0da;
+  --bg-card: #dce0e8;
+  --bg-code: #e6e9ef;
+  --border-primary: #ccd0da;
+  --border-secondary: #bcc0cc;
+  --text-primary: #4c4f69;
+  --text-secondary: #5c5f77;
+  --text-muted: #8c8fa1;
+  --accent: #1e66f5;
+  --accent-text: #eff1f5;
+  --success: #40a02b;
+  --warning: #fe640b;
+  --danger: #d20f39;
+  --purple: #8839ef;
+  --pink: #ea76cb;
+  --yellow: #df8e1d;
+}
+
+html, body, #app {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background 0.3s, color 0.3s;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* Global select/dropdown styles */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 7px 32px 7px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-secondary);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  transition: border-color 0.2s;
+}
+select:hover { border-color: var(--accent); }
+select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(137,180,250,0.2); }
+
+select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}

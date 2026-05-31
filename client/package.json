@@ -1,0 +1,30 @@
+{
+  "name": "programming-tutor-client",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@monaco-editor/loader": "^1.4.0",
+    "axios": "^1.7.9",
+    "highlight.js": "^11.11.1",
+    "markdown-it": "^14.2.0",
+    "monaco-editor": "^0.52.2",
+    "naive-ui": "^2.41.0",
+    "pinia": "^2.3.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
+    "@types/node": "^22.10.0",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "typescript": "~5.7.2",
+    "vite": "^6.0.5",
+    "vue-tsc": "^2.2.0"
+  }
+}
