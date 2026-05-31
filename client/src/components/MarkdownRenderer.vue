@@ -54,7 +54,14 @@ function handleClick(e: Event) {
   if (!btn) return
   const code = btn.dataset.code?.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"') || ''
   if (btn.classList.contains('copy-btn')) {
-    navigator.clipboard.writeText(code).catch(() => {})
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(code).catch(() => {})
+    } else {
+      const ta = document.createElement('textarea')
+      ta.value = code; ta.style.position = 'fixed'; ta.style.opacity = '0'
+      document.body.appendChild(ta); ta.select()
+      document.execCommand('copy'); document.body.removeChild(ta)
+    }
     btn.textContent = '已复制'
     setTimeout(() => { btn.textContent = '复制' }, 1500)
   } else if (btn.classList.contains('edit-btn')) {

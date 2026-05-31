@@ -87,22 +87,21 @@ function getJavaClassName(code) {
 function buildCommand(language, filePath, code) {
   switch (language) {
     case 'python':
-      return { cmd: `python "${filePath}"`, need: 'python' }
+      return { cmd: `python3 "${filePath}" || python "${filePath}"`, need: 'python3' }
     case 'javascript':
       return { cmd: `node "${filePath}"`, need: 'node' }
     case 'java': {
       const className = getJavaClassName(code)
+      const dir = path.dirname(filePath)
+      const javaFile = path.join(dir, className + '.java')
       return {
-        cmd: `javac -encoding utf-8 "${filePath}" && java -cp "${path.dirname(filePath)}" ${className}`,
+        cmd: `javac -encoding utf-8 "${javaFile}" && java -cp "${dir}" ${className}`,
         need: 'JDK (javac + java)',
         setup: () => {
-          // Rename file to match class name
-          const dir = path.dirname(filePath)
-          const newFile = path.join(dir, className + '.java')
-          if (newFile !== filePath) {
-            writeFileSync(newFile, code, 'utf-8')
+          if (javaFile !== filePath) {
+            writeFileSync(javaFile, code, 'utf-8')
           }
-          return { filePath: newFile, className }
+          return { filePath: javaFile, className }
         },
       }
     }
@@ -120,7 +119,15 @@ function buildCommand(language, filePath, code) {
         const exeFile = filePath.replace('.cs', '.exe')
         return { cmd: `"${csc}" /nologo /out:"${exeFile}" "${filePath}" && "${exeFile}"`, need: null }
       }
-      return { cmd: null, need: '.NET SDK (dotnet) 或 .NET Framework (csc)', error: '未找到 C# 编译器。请安装 .NET SDK: https://dotnet.microsoft.com/download' }
+      // Try dotnet on Linux
+      try {
+        execSync('dotnet --version 2>/dev/null', { stdio: 'pipe', timeout: 3000 })
+        const dllFile = filePath.replace('.cs', '.dll')
+        const exeFile = filePath.replace('.cs', '')
+        return { cmd: `dotnet new console -o /tmp/csproj --force 2>/dev/null && cp "${filePath}" /tmp/csproj/Program.cs && dotnet run --project /tmp/csproj`, need: null }
+      } catch {
+        return { cmd: null, need: '.NET SDK (dotnet)', error: '未找到 C# 编译器。安装: sudo apt install -y dotnet-sdk-8.0' }
+      }
     }
     case 'go':
       return { cmd: `go run "${filePath}"`, need: 'Go (golang)' }
