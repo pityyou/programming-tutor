@@ -138,7 +138,7 @@ async function handleRun() {
   }
   // Refocus Monaco editor
   await nextTick()
-  document.querySelector('.monaco-editor textarea')?.focus()
+  ;(document.querySelector('.monaco-editor textarea') as HTMLTextAreaElement | null)?.focus()
 }
 
 function handleDebug() {

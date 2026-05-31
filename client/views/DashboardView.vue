@@ -42,9 +42,9 @@ async function generateReport() {
   const sessionTitles = chatSessions.value.map((s: any) => s.title).join('、')
   const prompt = `请根据以下学习数据生成一份简短的AI学习报告：
 
-- 对话次数：${stats.totalSessions}
-- 消息数：${stats.totalMessages}
-- 收藏代码数：${stats.snippetCount}
+- 对话次数：${stats.value.totalSessions}
+- 消息数：${stats.value.totalMessages}
+- 收藏代码数：${stats.value.snippetCount}
 - 对话主题：${sessionTitles || '暂无'}
 
 请分析：
@@ -70,11 +70,11 @@ async function generateReport() {
 function goChat() { router.push('/chat') }
 
 const computedBadges = computed(() => [
-  { name: '初次对话', icon: '💬', condition: '完成1次对话', earned: stats.totalSessions >= 1 },
-  { name: '勤学好问', icon: '📚', condition: '完成10次对话', earned: stats.totalSessions >= 10 },
-  { name: '代码收藏家', icon: '⭐', condition: '收藏5个代码', earned: stats.snippetCount >= 5 },
-  { name: '消息达人', icon: '✉️', condition: '发送50条消息', earned: stats.totalMessages >= 50 },
-  { name: '持之以恒', icon: '🔥', condition: '连续3天学习', earned: stats.totalSessions >= 5 },
+  { name: '初次对话', icon: '💬', condition: '完成1次对话', earned: stats.value.totalSessions >= 1 },
+  { name: '勤学好问', icon: '📚', condition: '完成10次对话', earned: stats.value.totalSessions >= 10 },
+  { name: '代码收藏家', icon: '⭐', condition: '收藏5个代码', earned: stats.value.snippetCount >= 5 },
+  { name: '消息达人', icon: '✉️', condition: '发送50条消息', earned: stats.value.totalMessages >= 50 },
+  { name: '持之以恒', icon: '🔥', condition: '连续3天学习', earned: stats.value.totalSessions >= 5 },
   { name: '多语言探索者', icon: '🌍', condition: '学习3门语言', earned: false },
 ])
 </script>
