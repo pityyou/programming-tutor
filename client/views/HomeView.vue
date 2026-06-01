@@ -39,12 +39,30 @@ if (store.isLoggedIn) {
   min-height: 100vh;
   padding: 40px 20px;
   text-align: center;
-  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 40%, var(--bg-card) 100%);
+  position: relative;
+  overflow: hidden;
+}
+.home-page::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 30% 20%, var(--accent-glow) 0%, transparent 50%),
+              radial-gradient(circle at 70% 80%, rgba(203,166,247,0.08) 0%, transparent 50%);
+  pointer-events: none;
 }
 h1 {
-  font-size: 36px;
-  color: var(--text-primary);
+  font-size: 38px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin-bottom: 12px;
+  position: relative;
 }
 .desc {
   color: var(--text-secondary);
@@ -61,9 +79,16 @@ h1 {
 .feature-card {
   background: var(--bg-tertiary);
   padding: 28px 24px;
-  border-radius: 12px;
-  width: 240px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  border-radius: 16px;
+  width: 260px;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.3s, box-shadow 0.3s;
+  cursor: default;
+  position: relative;
+}
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(137,180,250,0.15);
 }
 .feature-card .icon {
   font-size: 32px;
@@ -80,16 +105,20 @@ h1 {
   line-height: 1.5;
 }
 .btn-start {
-  padding: 14px 48px;
-  border-radius: 10px;
+  padding: 16px 56px;
+  border-radius: 14px;
   border: none;
-  background: var(--accent);
-  color: var(--bg-primary);
-  font-size: 17px;
-  font-weight: 600;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 4px 20px var(--accent-glow);
+  transition: transform 0.2s, box-shadow 0.2s;
+  letter-spacing: 1px;
 }
 .btn-start:hover {
-  background: #74c7ec;
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 30px rgba(137,180,250,0.3);
 }
 </style>

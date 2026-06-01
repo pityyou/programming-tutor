@@ -389,9 +389,11 @@ function exportChat() {
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--bg-tertiary);
+  background: var(--gradient-top);
+  border-bottom: 1px solid var(--border-primary);
   flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
 }
 .topbar-left {
   display: flex;
@@ -408,9 +410,12 @@ function exportChat() {
 }
 .sidebar-toggle:hover { color: var(--text-primary); }
 .logo {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--accent);
+  font-size: 17px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 .topbar-right {
   display: flex;
@@ -495,24 +500,27 @@ function exportChat() {
   cursor: pointer;
 }
 .quick-actions button:hover { background: var(--border-secondary); }
-.message { margin-bottom: 16px; }
+.message { margin-bottom: 16px; animation: fadeInUp 0.25s ease; }
+.welcome { animation: fadeInUp 0.3s ease; }
 .message.user { text-align: right; }
 .message.user .msg-content {
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent), #74c7ec);
   color: var(--bg-primary);
   display: inline-block;
-  padding: 10px 14px;
-  border-radius: 12px 12px 4px 12px;
+  padding: 10px 16px;
+  border-radius: 16px 16px 4px 16px;
   max-width: 85%;
   text-align: left;
   white-space: pre-wrap;
+  box-shadow: var(--shadow-sm);
 }
 .message.assistant .msg-content {
-  background: var(--bg-tertiary);
+  background: var(--bg-secondary);
   color: var(--text-primary);
-  padding: 10px 14px;
-  border-radius: 4px 12px 12px 12px;
-  line-height: 1.6;
+  padding: 12px 16px;
+  border-radius: 4px 16px 16px 16px;
+  line-height: 1.7;
+  border: 1px solid var(--border-primary);
 }
 .typing-indicator {
   display: flex;
@@ -535,8 +543,9 @@ function exportChat() {
   display: flex;
   gap: 8px;
   padding: 12px 16px;
-  border-top: 1px solid var(--bg-tertiary);
-  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-primary);
+  background: var(--gradient-top);
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
 }
 .chat-textarea {
   flex: 1;
