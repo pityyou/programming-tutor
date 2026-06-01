@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import { v4 as uuid } from 'uuid'
-import { dbGet, dbAll, dbExec } from '../models/db.js'
+import { dbGet, dbExec } from '../models/db.js'
 import { signToken, authMiddleware } from '../middleware/auth.js'
 
 export const authRouter = Router()

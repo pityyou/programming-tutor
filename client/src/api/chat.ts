@@ -57,11 +57,3 @@ export function sendMessage(req: ChatRequest, onChunk: (text: string) => void): 
 export function executeCode(language: string, code: string, stdin?: string) {
   return api.post<{ output: string; error?: string }>('/execute', { language, code, stdin })
 }
-
-export function getChatHistory() {
-  return api.get<{ sessions: any[] }>('/sessions')
-}
-
-export function getSessionMessages(sessionId: string) {
-  return api.get<{ messages: ChatMessage[] }>(`/sessions/${sessionId}`)
-}

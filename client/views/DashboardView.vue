@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '../src/stores/app'
 import { sendMessage } from '../src/api/chat'
+import MarkdownRenderer from '../src/components/MarkdownRenderer.vue'
 import api from '../src/api'
 
 const router = useRouter()
@@ -140,7 +141,7 @@ const computedBadges = computed(() => [
         <button class="btn-report" @click="generateReport" :disabled="reportLoading">
           {{ reportLoading ? '生成中...' : report ? '重新生成' : '生成学习报告' }}
         </button>
-        <div v-if="report" class="report-card" v-html="report.replace(/\n/g, '<br>')"></div>
+        <MarkdownRenderer v-if="report" :content="report" />
       </div>
 
       <div class="actions">

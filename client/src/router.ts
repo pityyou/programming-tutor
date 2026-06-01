@@ -33,6 +33,11 @@ const router = createRouter({
       name: 'learning-path',
       component: () => import('../views/LearningPath.vue'),
     },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('../views/NotFound.vue'),
+    },
   ],
 })
 

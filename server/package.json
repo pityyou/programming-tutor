@@ -15,8 +15,6 @@
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
     "uuid": "^11.0.5",
-    "dockerode": "^4.0.2",
-    "@anthropic-ai/sdk": "^0.39.0",
     "openai": "^4.77.0"
   },
   "devDependencies": {

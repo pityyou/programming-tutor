@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-面向学生的编程自主学习智能体，支持 Python、Java、C/C++、C#、Go 等多语言语法学习，部署于 Web 端。
+面向学生的编程自主学习智能体，支持 Python、Java、C/C++、Go、JavaScript 等多语言语法学习，部署于 Web 端。
 
 ### 开发缘由
 
@@ -13,8 +13,8 @@
 ### 功能特点
 
 - AI 对话学伴：基于 LLM 的编程答疑，支持追问、代码解释、错误分析
-- 多语言代码沙箱：Python / Java / C / C++ / C# / Go 在线编写运行
-- 多模型切换：DeepSeek（默认）/ Claude / OpenAI 自由切换
+- 多语言代码沙箱：Python / Java / C / C++ / Go / JavaScript 在线编写运行
+- AI 对话基于 DeepSeek API
 - 交互式练习：AI 出题 → 学生写代码 → AI 评测反馈
 - 学习记录：对话历史、练习记录、进度追踪
 
@@ -44,7 +44,7 @@
 programming-tutor/
 ├── client/                  # Vue 3 前端
 │   ├── src/
-│   │   ├── components/      # 对话面板、代码编辑器、模型切换器
+│   │   ├── components/      # 对话面板、代码编辑器、快捷指令等
 │   │   ├── views/           # 首页、对话页、登录页
 │   │   ├── stores/          # Pinia 状态管理
 │   │   ├── api/             # 后端 API 封装
@@ -53,7 +53,7 @@ programming-tutor/
 ├── server/                  # Node.js 后端
 │   ├── src/
 │   │   ├── routes/          # chat, auth, execute
-│   │   ├── adapters/        # LLM 适配器 (deepseek/claude/openai)
+│   │   ├── adapters/        # LLM 适配器 (DeepSeek)
 │   │   ├── services/        # 代码执行沙箱
 │   │   ├── models/          # 数据模型 (SQLite)
 │   │   ├── middleware/       # JWT 认证中间件
@@ -66,8 +66,8 @@ programming-tutor/
 
 ## MVP 范围（第一期 - 已完成）
 
-1. AI 对话学伴（SSE 流式 + 代码块渲染 + 多模型切换）
-2. 代码编辑器 + 运行（Monaco Editor + 本地沙箱，支持 7 种语言）
+1. AI 对话学伴（SSE 流式 + 代码块渲染）
+2. 代码编辑器 + 运行（Monaco Editor + 本地沙箱，支持 6 种语言）
 3. 简易用户系统（注册/登录 + JWT + 对话历史绑定）
 4. 语言切换时自动填入 Hello World 示例代码
 5. SSE 流式输出（绕过 Vite 代理直连后端 + TCP NoDelay）
@@ -80,7 +80,7 @@ programming-tutor/
 - 对话历史侧边栏（搜索、删除、重命名会话）
 
 ### Phase 2：语法知识卡片库
-- 7 语言 63 知识点（Python/JS/Java/C++/C/C#/Go）
+- 6 语言 + 算法 90+ 知识点（Python/JS/Java/C++/C/Go + 算法）
 - 每个卡片：问 AI / 运行示例 / B站视频
 - 卡片与 AI 联动（一键发送知识点到对话）
 - 卡片示例代码一键填入编辑器
@@ -112,20 +112,14 @@ programming-tutor/
 - 语音输入（Web Speech API，支持中文语音转文字提问）
 - AI 学习报告（分析对话历史，生成学习总结+优势+建议）
 - Docker 沙箱（容器隔离代码执行，安全限内存/CPU/网络）
+- 粒子背景特效（200 粒子 + 鼠标联动 + 亮暗主题适配）
+- 学习路径 ↔ 知识卡片联动导航
 
-### Phase 3：AI 出题 + 评测
-- AI 根据语言 + 难度/主题自动出题
-- 代码提交后沙箱执行 + 测试用例验证
-- 分步提示（不给完整答案）
-- 题目完成记录
-
-## LLM 多模型网关架构
+## LLM 架构
 
 ```
 请求 → /api/chat → DeepSeek API
 ```
-
-前端传 `provider` 参数，后端自动路由到对应适配器。所有适配器实现统一接口。
 
 ## 页面布局（MVP）
 
