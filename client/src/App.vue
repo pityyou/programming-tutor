@@ -4,19 +4,16 @@ import ParticleBackground from './components/ParticleBackground.vue'
 </script>
 
 <template>
-  <div class="app-root">
-    <ParticleBackground />
+  <ParticleBackground />
+  <div class="app-content">
     <RouterView />
   </div>
 </template>
 
 <style>
-.app-root {
-  position: relative;
-  min-height: 100vh;
-}
-.app-root > :not(.particle-canvas) {
+.app-content {
   position: relative;
   z-index: 1;
+  min-height: 100vh;
 }
 </style>
