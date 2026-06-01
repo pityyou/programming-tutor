@@ -207,29 +207,6 @@ const cards: Record<string, { topic: string; items: Card[] }[]> = {
       ],
     },
   ],
-  csharp: [
-    {
-      topic: '基础语法',
-      items: [
-        { id: 'cs-1', title: 'Hello World 与基本结构', language: 'csharp', content: 'C# 程序入口是 `Main` 方法。`Console.WriteLine` 输出，`Console.ReadLine` 输入。`using` 引入命名空间。C# 是类型安全的面向对象语言。', example: 'using System;\n\nclass Program {\n    static void Main() {\n        Console.WriteLine("Hello, World!");\n        \n        Console.Write("输入名字: ");\n        string name = Console.ReadLine();\n        Console.WriteLine($"你好，{name}!");\n    }\n}' },
-        { id: 'cs-2', title: '数据类型', language: 'csharp', content: '值类型：`int`、`long`、`float`、`double`、`decimal`、`bool`、`char`、`struct`、`enum`。引用类型：`string`、`class`、`array`、`interface`。`var` 隐式类型推断。', example: 'int age = 20;\ndouble price = 19.99;\ndecimal money = 100.50m;  // 高精度金融计算\nbool isStudent = true;\nstring name = "张三";\n\nvar x = 42;      // 编译器推断为 int\nvar s = "hello"; // 编译器推断为 string\n\n// 可空类型\nint? maybeNull = null;\nint value = maybeNull ?? 0;  // null 合并' },
-        { id: 'cs-3', title: 'LINQ 查询', language: 'csharp', content: 'LINQ（Language Integrated Query）是 C# 的查询语法，可对集合、数据库、XML 等进行统一查询。方法语法和查询语法两种风格。', example: 'using System;\nusing System.Linq;\nusing System.Collections.Generic;\n\nvar numbers = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };\n\n// 方法语法\nvar evens = numbers.Where(n => n % 2 == 0)\n                   .Select(n => n * n)\n                   .OrderByDescending(n => n);\n\n// 查询语法\nvar result = from n in numbers\n             where n > 5\n             orderby n descending\n             select new { Number = n, Square = n * n };\n\nforeach (var item in result)\n    Console.WriteLine($"{item.Number} -> {item.Square}");' },
-      ],
-    },
-    {
-      topic: '面向对象',
-      items: [
-        { id: 'cs-4', title: '类与属性', language: 'csharp', content: 'C# 属性（Property）封装字段，支持 `get`/`set` 访问器。自动属性简写 `{ get; set; }`。`readonly` 只读字段，`const` 编译时常量。', example: 'class Student {\n    // 自动属性\n    public string Name { get; set; }\n    public int Age { get; private set; }\n    \n    // 完整属性\n    private double score;\n    public double Score {\n        get => score;\n        set {\n            if (value < 0 || value > 100)\n                throw new ArgumentException("分数范围 0-100");\n            score = value;\n        }\n    }\n    \n    public Student(string name, int age) {\n        Name = name;\n        Age = age;\n    }\n}' },
-        { id: 'cs-5', title: '继承与接口', language: 'csharp', content: 'C# 只支持单继承，可多实现接口。`virtual` 虚方法，`override` 重写，`abstract` 抽象类/方法，`sealed` 禁止继承/重写。`base` 调用父类。', example: 'abstract class Animal {\n    public string Name { get; set; }\n    public abstract string Speak();\n}\n\ninterface IFlyable {\n    void Fly();\n}\n\nclass Bird : Animal, IFlyable {\n    public Bird(string name) { Name = name; }\n    public override string Speak() => $\"{Name}: 叽叽!\";\n    public void Fly() => Console.WriteLine($\"{Name} 在飞\");\n}\n\nclass Program {\n    static void Main() {\n        Bird b = new Bird("小黄");\n        Console.WriteLine(b.Speak());\n        b.Fly();\n    }\n}' },
-      ],
-    },
-    {
-      topic: '异步编程',
-      items: [
-        { id: 'cs-6', title: 'async / await', language: 'csharp', content: 'C# 的 `async/await` 是异步编程的核心。`Task` 表示异步操作，`Task<T>` 返回结果。异步方法命名约定以 Async 结尾。`ConfigureAwait(false)` 避免死锁。', example: 'using System;\nusing System.Net.Http;\nusing System.Threading.Tasks;\n\nclass Program {\n    static async Task Main() {\n        string content = await FetchUrlAsync("https://example.com");\n        Console.WriteLine(content.Length);\n    }\n    \n    static async Task<string> FetchUrlAsync(string url) {\n        using var client = new HttpClient();\n        try {\n            string result = await client.GetStringAsync(url);\n            return result;\n        } catch (HttpRequestException e) {\n            Console.WriteLine($\"请求失败: {e.Message}\");\n            return "";\n        }\n    }\n}' },
-      ],
-    },
-  ],
   go: [
     {
       topic: '基础语法',

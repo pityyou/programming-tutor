@@ -13,7 +13,7 @@ if (store.isLoggedIn) {
 <template>
   <div class="home-page">
     <h1>编程学习智能体</h1>
-    <p class="desc">支持 Python · Java · C/C++ · C# · Go · JavaScript 等多语言在线学习</p>
+    <p class="desc">支持 Python · Java · C/C++ · Go · JavaScript 等多语言在线学习</p>
     <div class="features">
       <div class="feature-card">
         <div class="icon">💬</div>

@@ -22,7 +22,6 @@ const langMap: Record<string, string> = {
   java: 'java',
   cpp: 'cpp',
   c: 'c',
-  csharp: 'csharp',
   go: 'go',
 }
 

@@ -20,7 +20,6 @@ const languages = [
   { value: 'java', label: 'Java', icon: '☕' },
   { value: 'cpp', label: 'C++', icon: '⚡' },
   { value: 'c', label: 'C', icon: '🔧' },
-  { value: 'csharp', label: 'C#', icon: '🎯' },
   { value: 'go', label: 'Go', icon: '🔵' },
 ]
 
@@ -58,12 +57,6 @@ const paths: Record<string, Stage[]> = {
     { title: '基础', desc: '控制流、数组、函数', icon: '📖', topics: ['控制流程', '数组', '函数'] },
     { title: '指针', desc: '指针、动态内存', icon: '🔑', topics: ['指针深入', '指针算术', '动态内存分配'] },
     { title: '高级', desc: '结构体、文件操作', icon: '⚡', topics: ['struct与union', '文件操作', '预处理器'] },
-  ],
-  csharp: [
-    { title: '入门', desc: 'Hello World、类型系统', icon: '🚀', topics: ['基本结构', '数据类型', '字符串'] },
-    { title: '基础', desc: '控制流、集合、LINQ', icon: '📖', topics: ['控制流程', 'List/Dictionary', 'LINQ查询'] },
-    { title: '面向对象', desc: '类、属性、继承、接口', icon: '🏗️', topics: ['类与属性', '继承与多态', '接口'] },
-    { title: '异步', desc: 'async/await、Task', icon: '⏳', topics: ['Task', 'async/await', '异常处理'] },
   ],
   go: [
     { title: '入门', desc: 'Hello World、变量、类型', icon: '🚀', topics: ['包与导入', '变量与类型', '控制流程'] },

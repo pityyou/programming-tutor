@@ -6,7 +6,6 @@ import javascript from 'highlight.js/lib/languages/javascript'
 import java from 'highlight.js/lib/languages/java'
 import cpp from 'highlight.js/lib/languages/cpp'
 import c from 'highlight.js/lib/languages/c'
-import csharp from 'highlight.js/lib/languages/csharp'
 import go from 'highlight.js/lib/languages/go'
 import bash from 'highlight.js/lib/languages/bash'
 
@@ -15,7 +14,6 @@ hljs.registerLanguage('javascript', javascript)
 hljs.registerLanguage('java', java)
 hljs.registerLanguage('cpp', cpp)
 hljs.registerLanguage('c', c)
-hljs.registerLanguage('csharp', csharp)
 hljs.registerLanguage('go', go)
 hljs.registerLanguage('bash', bash)
 
