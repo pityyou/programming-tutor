@@ -18,17 +18,12 @@ if (store.isLoggedIn) {
       <div class="feature-card">
         <div class="icon">💬</div>
         <h3>AI 对话学伴</h3>
-        <p>基于大语言模型的编程答疑，支持多模型自由切换</p>
+        <p>基于 DeepSeek 大语言模型的编程答疑，支持语音输入</p>
       </div>
       <div class="feature-card">
         <div class="icon">▶</div>
         <h3>在线代码运行</h3>
         <p>多语言代码沙箱，一键运行查看输出</p>
-      </div>
-      <div class="feature-card">
-        <div class="icon">🔄</div>
-        <h3>多模型切换</h3>
-        <p>DeepSeek / Claude / OpenAI 自由选择</p>
       </div>
     </div>
     <button class="btn-start" @click="router.push('/login')">开始学习</button>

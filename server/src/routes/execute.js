@@ -119,14 +119,16 @@ function buildCommand(language, filePath, code) {
         const exeFile = filePath.replace('.cs', '.exe')
         return { cmd: `"${csc}" /nologo /out:"${exeFile}" "${filePath}" && "${exeFile}"`, need: null }
       }
-      // Try dotnet on Linux
       try {
         execSync('dotnet --version 2>/dev/null', { stdio: 'pipe', timeout: 3000 })
-        const dllFile = filePath.replace('.cs', '.dll')
-        const exeFile = filePath.replace('.cs', '')
-        return { cmd: `dotnet new console -o /tmp/csproj --force 2>/dev/null && cp "${filePath}" /tmp/csproj/Program.cs && dotnet run --project /tmp/csproj`, need: null }
+        const dir = path.dirname(filePath)
+        const projDir = path.join(dir, 'cs_' + path.basename(filePath, '.cs'))
+        return {
+          cmd: `mkdir -p "${projDir}" && cd "${projDir}" && dotnet new console --force -n app > /dev/null 2>&1 && cp "${filePath}" "${projDir}/Program.cs" && dotnet run --project "${projDir}" 2>&1 && rm -rf "${projDir}"`,
+          need: null,
+        }
       } catch {
-        return { cmd: null, need: '.NET SDK (dotnet)', error: '未找到 C# 编译器。安装: sudo apt install -y dotnet-sdk-8.0' }
+        return { cmd: null, need: '.NET SDK (dotnet)', error: '安装 C# 编译器: sudo apt install -y dotnet-sdk-8.0' }
       }
     }
     case 'go':
