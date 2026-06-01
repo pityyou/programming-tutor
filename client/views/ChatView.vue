@@ -267,13 +267,47 @@ function exportChat() {
       <div class="chat-panel">
         <div class="chat-messages" ref="chatContainer">
           <div v-if="messages.length === 0" class="welcome">
-            <h2>欢迎使用编程学习智能体</h2>
-            <p>选择语言和模型，开始对话学习编程吧！</p>
-            <div class="quick-actions">
-              <button @click="handleAskAi('Python 列表推导式怎么写？')">Python 列表推导式</button>
-              <button @click="handleAskAi('Java 中 HashMap 和 TreeMap 的区别是什么？')">Java HashMap vs TreeMap</button>
-              <button @click="handleAskAi('Go 语言的 goroutine 怎么用？')">Go Goroutine</button>
-              <button @click="handleAskAi('解释 C++ 的智能指针')">C++ 智能指针</button>
+            <div class="welcome-hero">
+              <div class="welcome-icons">
+                <span class="w-icon" style="--i:0">🐍</span>
+                <span class="w-icon" style="--i:1">☕</span>
+                <span class="w-icon" style="--i:2">⚡</span>
+                <span class="w-icon" style="--i:3">🔵</span>
+                <span class="w-icon" style="--i:4">🔧</span>
+                <span class="w-icon" style="--i:5">📜</span>
+              </div>
+              <h2>开始你的编程之旅</h2>
+              <p class="welcome-sub">选择一个话题，AI 助教带你探索编程世界</p>
+            </div>
+            <div class="welcome-grid">
+              <div class="w-card beginner" @click="handleAskAi('我刚开始学编程，Python 的第一个程序怎么写？')">
+                <span class="wc-icon">🌱</span>
+                <div class="wc-text">
+                  <strong>零基础入门</strong>
+                  <span>从 Hello World 开始</span>
+                </div>
+              </div>
+              <div class="w-card practice" @click="handleAskAi('出一道 Python 算法题让我练习一下')">
+                <span class="wc-icon">💪</span>
+                <div class="wc-text">
+                  <strong>刷题练习</strong>
+                  <span>算法 + 数据结构</span>
+                </div>
+              </div>
+              <div class="w-card debug" @click="handleAskAi('我的代码运行报错了，怎么调试？')">
+                <span class="wc-icon">🔍</span>
+                <div class="wc-text">
+                  <strong>Debug 指导</strong>
+                  <span>排查错误，优化代码</span>
+                </div>
+              </div>
+              <div class="w-card review" @click="handleAskAi('帮我做一个今天的学习总结')">
+                <span class="wc-icon">📊</span>
+                <div class="wc-text">
+                  <strong>学习总结</strong>
+                  <span>回顾知识，查漏补缺</span>
+                </div>
+              </div>
             </div>
           </div>
           <div
@@ -478,30 +512,49 @@ function exportChat() {
   overflow-y: auto;
   padding: 16px;
 }
-.welcome {
-  text-align: center;
-  padding: 60px 20px;
+.welcome { padding: 20px 10px; animation: fadeInUp 0.4s ease; }
+.welcome-hero { text-align: center; margin-bottom: 28px; }
+.welcome-icons {
+  display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
 }
-.welcome h2 { color: var(--text-primary); margin-bottom: 8px; }
-.welcome p { color: var(--text-secondary); margin-bottom: 24px; }
-.quick-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
+.w-icon {
+  font-size: 28px;
+  animation: floatIcon 3s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 0.3s);
 }
-.quick-actions button {
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: 1px solid var(--border-secondary);
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  font-size: 13px;
-  cursor: pointer;
+@keyframes floatIcon {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33% { transform: translateY(-12px) rotate(5deg); }
+  66% { transform: translateY(-4px) rotate(-3deg); }
 }
-.quick-actions button:hover { background: var(--border-secondary); }
+.welcome h2 {
+  font-size: 24px; font-weight: 800; margin-bottom: 6px;
+  background: var(--gradient-accent);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.welcome-sub { color: var(--text-secondary); font-size: 14px; }
+.welcome-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-width: 480px; margin: 0 auto;
+}
+.w-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px; border-radius: var(--radius-md);
+  cursor: pointer; transition: all 0.25s ease;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+}
+.w-card:hover {
+  transform: translateY(-3px);
+}
+.w-card.beginner:hover { border-color: var(--accent-3); background: rgba(77,232,192,0.06); }
+.w-card.practice:hover { border-color: var(--accent); background: rgba(108,140,255,0.06); }
+.w-card.debug:hover { border-color: var(--accent-2); background: rgba(255,107,157,0.06); }
+.w-card.review:hover { border-color: var(--purple); background: rgba(183,148,244,0.06); }
+.wc-icon { font-size: 26px; flex-shrink: 0; }
+.wc-text { display: flex; flex-direction: column; gap: 2px; }
+.wc-text strong { font-size: 13px; color: var(--text-primary); }
+.wc-text span { font-size: 11px; color: var(--text-muted); }
 .message { margin-bottom: 16px; animation: fadeInUp 0.25s ease; }
-.welcome { animation: fadeInUp 0.3s ease; }
 .message.user { text-align: right; }
 .message.user .msg-content {
   background: linear-gradient(135deg, var(--accent), #74c7ec);
