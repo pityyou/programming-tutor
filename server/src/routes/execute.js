@@ -48,7 +48,6 @@ const fileExtensions = {
   java: 'java',
   cpp: 'cpp',
   c: 'c',
-  csharp: 'cs',
   go: 'go',
 }
 
@@ -57,26 +56,6 @@ function hasCommand(cmd) {
     execSync(`where ${cmd} 2>nul || which ${cmd} 2>/dev/null || echo notfound`, { encoding: 'utf-8', timeout: 3000 })
     return true
   } catch { return false }
-}
-
-function findCsc() {
-  const paths = [
-    'csc',
-    'C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\csc.exe',
-    'C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe',
-  ]
-  for (const p of paths) {
-    try {
-      execSync(`"${p}" /? 2>&1`, { encoding: 'utf-8', timeout: 3000 })
-      return p
-    } catch {
-      try {
-        execSync(`${p} /? 2>&1`, { encoding: 'utf-8', timeout: 3000 })
-        return p
-      } catch { /* continue */ }
-    }
-  }
-  return null
 }
 
 function getJavaClassName(code) {
@@ -112,24 +91,6 @@ function buildCommand(language, filePath, code) {
     case 'c': {
       const exeFile = filePath.replace('.c', '.exe')
       return { cmd: `gcc "${filePath}" -o "${exeFile}" && "${exeFile}"`, need: 'gcc (MinGW/GCC)' }
-    }
-    case 'csharp': {
-      const csc = findCsc()
-      if (csc) {
-        const exeFile = filePath.replace('.cs', '.exe')
-        return { cmd: `"${csc}" /nologo /out:"${exeFile}" "${filePath}" && "${exeFile}"`, need: null }
-      }
-      try {
-        execSync('dotnet --version 2>/dev/null', { stdio: 'pipe', timeout: 3000 })
-        const dir = path.dirname(filePath)
-        const projDir = path.join(dir, 'cs_' + path.basename(filePath, '.cs'))
-        return {
-          cmd: `mkdir -p "${projDir}" && cd "${projDir}" && dotnet new console --force -n app > /dev/null 2>&1 && cp "${filePath}" "${projDir}/Program.cs" && dotnet run --project "${projDir}" 2>&1 && rm -rf "${projDir}"`,
-          need: null,
-        }
-      } catch {
-        return { cmd: null, need: '.NET SDK (dotnet)', error: '安装 C# 编译器: sudo apt install -y dotnet-sdk-8.0' }
-      }
     }
     case 'go':
       return { cmd: `go run "${filePath}"`, need: 'Go (golang)' }

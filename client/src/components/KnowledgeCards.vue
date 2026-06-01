@@ -24,8 +24,8 @@ const languages = [
   { value: 'java', label: 'Java', icon: '☕' },
   { value: 'cpp', label: 'C++', icon: '⚡' },
   { value: 'c', label: 'C', icon: '🔧' },
-  { value: 'csharp', label: 'C#', icon: '🎯' },
   { value: 'go', label: 'Go', icon: '🔵' },
+  { value: 'algo', label: '算法', icon: '🧮' },
 ]
 
 const cards: Record<string, { topic: string; items: Card[] }[]> = {
@@ -213,6 +213,43 @@ const cards: Record<string, { topic: string; items: Card[] }[]> = {
       topic: '错误处理',
       items: [
         { id: 'go-9', title: 'error 与 panic', language: 'go', content: 'Go 不使用异常，而是通过返回 `error` 值来处理错误。`if err != nil` 是 Go 的标志性写法。`panic` 仅在不可恢复的错误时使用，`recover` 在 defer 中捕获。', example: 'package main\n\nimport (\n    "fmt"\n    "os"\n)\n\nfunc readFile(path string) error {\n    file, err := os.Open(path)\n    if err != nil {\n        return fmt.Errorf("打开文件失败 %s: %w", path, err)\n    }\n    defer file.Close()\n    \n    // 读取文件...\n    return nil\n}\n\nfunc main() {\n    if err := readFile("test.txt"); err != nil {\n        fmt.Println("错误:", err)\n        return\n    }\n    fmt.Println("读取成功")\n    \n    // recover 示例\n    defer func() {\n        if r := recover(); r != nil {\n            fmt.Println("捕获到 panic:", r)\n        }\n    }()\n}' },
+      ],
+    },
+  ],
+  algo: [
+    {
+      topic: '排序算法',
+      items: [
+        { id: 'al-1', title: '冒泡排序', language: 'algo', content: '**思想**：重复遍历数组，比较相邻元素，将较大的元素"冒泡"到右侧。**时间复杂度**：O(n²)，**空间**：O(1)。**稳定**排序。', example: 'def bubble_sort(arr):\n    n = len(arr)\n    for i in range(n - 1):\n        swapped = False\n        for j in range(n - 1 - i):\n            if arr[j] > arr[j + 1]:\n                arr[j], arr[j + 1] = arr[j + 1], arr[j]\n                swapped = True\n        if not swapped:\n            break\n    return arr' },
+        { id: 'al-2', title: '选择排序', language: 'algo', content: '**思想**：每次从未排序部分选出最小元素，放到已排序部分末尾。**时间复杂度**：O(n²)，**空间**：O(1)。**不稳定**排序。', example: 'def selection_sort(arr):\n    n = len(arr)\n    for i in range(n):\n        min_idx = i\n        for j in range(i + 1, n):\n            if arr[j] < arr[min_idx]:\n                min_idx = j\n        arr[i], arr[min_idx] = arr[min_idx], arr[i]\n    return arr' },
+        { id: 'al-3', title: '插入排序', language: 'algo', content: '**思想**：将未排序元素逐个插入到已排序部分的正确位置，类似理牌。**时间复杂度**：O(n²)，近乎有序时 O(n)。**空间**：O(1)。**稳定**排序。', example: 'def insertion_sort(arr):\n    for i in range(1, len(arr)):\n        key = arr[i]\n        j = i - 1\n        while j >= 0 and arr[j] > key:\n            arr[j + 1] = arr[j]\n            j -= 1\n        arr[j + 1] = key\n    return arr' },
+        { id: 'al-4', title: '快速排序', language: 'algo', content: '**思想**：选基准值 pivot，分区为小于和大于基准的两部分，递归排序。**时间复杂度**：O(n log n)，最坏 O(n²)。**空间**：O(log n)。**不稳定**。', example: 'def quick_sort(arr):\n    if len(arr) <= 1:\n        return arr\n    pivot = arr[len(arr) // 2]\n    left = [x for x in arr if x < pivot]\n    mid = [x for x in arr if x == pivot]\n    right = [x for x in arr if x > pivot]\n    return quick_sort(left) + mid + quick_sort(right)' },
+        { id: 'al-5', title: '归并排序', language: 'algo', content: '**思想**：分治法——将数组分成两半，分别排序后再合并。**时间复杂度**：O(n log n)，**空间**：O(n)。**稳定**排序。', example: 'def merge_sort(arr):\n    if len(arr) <= 1:\n        return arr\n    mid = len(arr) // 2\n    left = merge_sort(arr[:mid])\n    right = merge_sort(arr[mid:])\n    return merge(left, right)\n\ndef merge(a, b):\n    result = []\n    i = j = 0\n    while i < len(a) and j < len(b):\n        if a[i] < b[j]: result.append(a[i]); i += 1\n        else: result.append(b[j]); j += 1\n    result.extend(a[i:]); result.extend(b[j:])\n    return result' },
+        { id: 'al-6', title: '堆排序', language: 'algo', content: '**思想**：利用堆（优先队列）数据结构。建最大堆，反复取堆顶并调整。**时间复杂度**：O(n log n)，**空间**：O(1)。**不稳定**。', example: 'import heapq\ndef heap_sort(arr):\n    heapq.heapify(arr)\n    return [heapq.heappop(arr) for _ in range(len(arr))]' },
+      ],
+    },
+    {
+      topic: '搜索算法',
+      items: [
+        { id: 'al-7', title: '二分查找', language: 'algo', content: '**条件**：有序数组。每次取中间元素比较，缩小一半搜索范围。**时间复杂度**：O(log n)，**空间**：O(1)。', example: 'def binary_search(arr, target):\n    left, right = 0, len(arr) - 1\n    while left <= right:\n        mid = left + (right - left) // 2\n        if arr[mid] == target: return mid\n        elif arr[mid] < target: left = mid + 1\n        else: right = mid - 1\n    return -1' },
+        { id: 'al-8', title: 'DFS 深度优先搜索', language: 'algo', content: '**思想**：从起点出发，沿着一条路径走到尽头再回溯。用**栈**实现。适合路径搜索、连通性、排列组合。', example: 'def dfs(graph, start, visited=None):\n    if visited is None: visited = set()\n    visited.add(start)\n    for neighbor in graph[start]:\n        if neighbor not in visited:\n            dfs(graph, neighbor, visited)\n    return visited' },
+        { id: 'al-9', title: 'BFS 广度优先搜索', language: 'algo', content: '**思想**：从起点出发，逐层扩展，用**队列**实现。适合最短路径（无权图）、层次遍历。**时间复杂度**：O(V+E)。', example: 'from collections import deque\ndef bfs(graph, start):\n    visited = {start}\n    q = deque([start])\n    while q:\n        node = q.popleft()\n        for nb in graph[node]:\n            if nb not in visited:\n                visited.add(nb)\n                q.append(nb)\n    return visited' },
+      ],
+    },
+    {
+      topic: '基础算法思想',
+      items: [
+        { id: 'al-10', title: '递归', language: 'algo', content: '**核心**：函数调用自身。必须有**终止条件**（base case）和**递归关系**。典型应用：树遍历、分治、回溯。', example: 'def factorial(n):\n    if n <= 1: return 1\n    return n * factorial(n - 1)' },
+        { id: 'al-11', title: '动态规划', language: 'algo', content: '**核心**：将大问题分解为重叠子问题，**记忆化**保存中间结果。关键要素：状态定义 + 状态转移方程 + 初始条件。', example: 'def fib(n):\n    if n <= 1: return n\n    a, b = 0, 1\n    for _ in range(2, n + 1):\n        a, b = b, a + b\n    return b' },
+        { id: 'al-12', title: '贪心算法', language: 'algo', content: '**核心**：每一步都做当前最优选择，不回溯。适用条件：贪心选择性质 + 最优子结构。经典问题：找零钱、活动选择。', example: 'def coin_change(coins, amount):\n    coins.sort(reverse=True)\n    count = 0\n    for coin in coins:\n        count += amount // coin\n        amount %= coin\n    return count if amount == 0 else -1' },
+        { id: 'al-13', title: '双指针技巧', language: 'algo', content: '**核心**：用两个指针在数组/链表中移动，降低复杂度。类型：左右指针、快慢指针、滑动窗口。', example: 'def two_sum_sorted(arr, target):\n    l, r = 0, len(arr) - 1\n    while l < r:\n        s = arr[l] + arr[r]\n        if s == target: return [l, r]\n        elif s < target: l += 1\n        else: r -= 1\n    return []' },
+      ],
+    },
+    {
+      topic: '常用数据结构',
+      items: [
+        { id: 'al-14', title: '栈与队列', language: 'algo', content: '**栈**（LIFO）：后进先出。**队列**（FIFO）：先进先出。应用：括号匹配、BFS、表达式求值。', example: 'from collections import deque\n# 栈\nstack = []; stack.append(1); stack.pop()\n# 队列\nq = deque(); q.append(1); q.popleft()\n# 括号匹配\ndef is_valid(s):\n    stack, pairs = [], {\')\': \'(\'}\n    for c in s:\n        if c in pairs:\n            if not stack or stack.pop() != pairs[c]: return False\n        else: stack.append(c)\n    return not stack' },
+        { id: 'al-15', title: '哈希表', language: 'algo', content: '**核心**：键→值的 O(1) 映射。常用于去重、计数、缓存。**空间换时间**的经典实现。', example: 'def two_sum(nums, target):\n    seen = {}\n    for i, num in enumerate(nums):\n        comp = target - num\n        if comp in seen: return [seen[comp], i]\n        seen[num] = i\n    return []' },
       ],
     },
   ],
