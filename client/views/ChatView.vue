@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick, watch } from 'vue'
+import { ref, nextTick, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '../src/stores/app'
 import { useThemeStore } from '../src/stores/theme'
@@ -25,6 +25,14 @@ if (!store.isLoggedIn) {
 
 // Sidebar
 const sidebarTab = ref<'history' | 'cards'>('history')
+
+onMounted(() => {
+  const nav = localStorage.getItem('nav_to_knowledge')
+  if (nav) {
+    sidebarTab.value = 'cards'
+    sidebarOpen.value = true
+  }
+})
 const sidebarOpen = ref(true)
 
 // Chat

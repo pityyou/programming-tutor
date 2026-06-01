@@ -74,6 +74,11 @@ const paths: Record<string, Stage[]> = {
 }
 
 const selectedLang = ref('python')
+
+function goToKnowledge(lang: string, topic: string) {
+  localStorage.setItem('nav_to_knowledge', JSON.stringify({ lang, topic }))
+  router.push('/chat')
+}
 </script>
 
 <template>
@@ -106,7 +111,7 @@ const selectedLang = ref('python')
             </div>
             <p class="stage-desc">{{ stage.desc }}</p>
             <div class="stage-topics">
-              <span v-for="t in stage.topics" :key="t" class="topic-tag">{{ t }}</span>
+              <span v-for="t in stage.topics" :key="t" class="topic-tag" @click="goToKnowledge(selectedLang, t)">{{ t }}</span>
             </div>
           </div>
         </div>
@@ -151,6 +156,10 @@ h1 { font-size: 22px; margin-bottom: 16px; }
 .stage-topics { display: flex; flex-wrap: wrap; gap: 6px; }
 .topic-tag {
   padding: 3px 10px; border-radius: 12px; border: 1px solid var(--border-secondary);
-  font-size: 11px; color: var(--accent);
+  font-size: 11px; color: var(--accent); cursor: pointer;
+  transition: all 0.2s;
+}
+.topic-tag:hover {
+  background: var(--accent); color: var(--accent-text);
 }
 </style>

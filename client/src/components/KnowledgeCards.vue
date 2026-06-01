@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from "vue"
 
 const emit = defineEmits<{
   'ask-ai': [prompt: string]
@@ -335,6 +335,23 @@ const cards: Record<string, { topic: string; items: Card[] }[]> = {
 
 const selectedLang = ref('python')
 const expandedTopics = ref<Record<string, boolean>>({})
+
+onMounted(() => {
+  const nav = localStorage.getItem('nav_to_knowledge')
+  if (nav) {
+    try {
+      const { lang, topic } = JSON.parse(nav)
+      if (lang && cards[lang]) {
+        selectedLang.value = lang
+        const idx = (cards[lang] || []).findIndex((g: any) =>
+          g.items.some((item: any) => item.title === topic)
+        )
+        if (idx >= 0) expandedTopics.value[`${lang}-${idx}`] = true
+      }
+    } catch { /* ignore */ }
+    localStorage.removeItem('nav_to_knowledge')
+  }
+})
 
 function toggleTopic(lang: string, idx: number) {
   const key = `${lang}-${idx}`
