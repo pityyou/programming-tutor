@@ -21,6 +21,7 @@ const languages = [
   { value: 'cpp', label: 'C++', icon: '⚡' },
   { value: 'c', label: 'C', icon: '🔧' },
   { value: 'go', label: 'Go', icon: '🔵' },
+  { value: 'algo', label: '算法', icon: '🧮' },
 ]
 
 const paths: Record<string, Stage[]> = {
@@ -63,6 +64,14 @@ const paths: Record<string, Stage[]> = {
     { title: '基础', desc: '函数、slice、map、struct', icon: '📖', topics: ['函数与多返回值', 'slice与map', 'struct'] },
     { title: '并发', desc: 'goroutine、channel', icon: '⚡', topics: ['Goroutine', 'Channel', 'select'] },
     { title: '进阶', desc: '接口、错误处理、defer', icon: '🏗️', topics: ['interface', 'error处理', 'defer/panic/recover'] },
+  ],
+  algo: [
+    { title: '排序基础', desc: '冒泡、选择、插入排序', icon: '📊', topics: ['冒泡排序', '选择排序', '插入排序'] },
+    { title: '高效排序', desc: '快排、归并、堆排序', icon: '⚡', topics: ['快速排序', '归并排序', '堆排序'] },
+    { title: '搜索', desc: '二分、DFS、BFS', icon: '🔍', topics: ['二分查找', 'DFS 深度优先搜索', 'BFS 广度优先搜索'] },
+    { title: '算法思想', desc: '递归、DP、贪心、双指针', icon: '🧠', topics: ['递归', '动态规划', '贪心算法', '双指针技巧'] },
+    { title: '高级算法', desc: 'Dijkstra、KMP、背包', icon: '🚀', topics: ['Dijkstra 最短路径', '拓扑排序', '01 背包问题', 'KMP 字符串匹配'] },
+    { title: '数据结构', desc: '栈、队列、哈希、Trie、线段树', icon: '🏗️', topics: ['栈与队列', '哈希表', 'Trie 字典树', '线段树', '二叉搜索树 BST'] },
   ],
 }
 
