@@ -415,6 +415,8 @@ function exportChat() {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  position: relative;
+  z-index: 1;
 }
 
 /* Topbar */
