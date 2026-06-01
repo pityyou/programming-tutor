@@ -18,8 +18,8 @@ class Particle {
   constructor() {
     this.x = Math.random() * w
     this.y = Math.random() * h
-    this.vx = (Math.random() - 0.5) * 0.3
-    this.vy = (Math.random() - 0.5) * 0.3
+    this.vx = (Math.random() - 0.5) * 0.12
+    this.vy = (Math.random() - 0.5) * 0.12
     this.baseR = Math.random() * 2.5 + 1.5
     this.r = this.baseR
     this.hue = Math.random() > 0.5 ? 220 : 270
@@ -29,17 +29,17 @@ class Particle {
     const dy = mouse.y - this.y
     const dist = Math.sqrt(dx * dx + dy * dy)
     if (dist < 250 && mouse.x > 0) {
-      const force = (250 - dist) / 250 * 0.08
-      this.vx += dx * force * 0.015
-      this.vy += dy * force * 0.015
+      const force = (250 - dist) / 250 * 0.04
+      this.vx += dx * force * 0.008
+      this.vy += dy * force * 0.008
       this.r = Math.min(this.baseR + (250 - dist) / 250 * 5, 7)
       this.hue = 270
     } else {
       this.r += (this.baseR - this.r) * 0.1
       this.hue = 220
     }
-    this.vx *= 0.999
-    this.vy *= 0.999
+    this.vx *= 0.997
+    this.vy *= 0.997
     this.x += this.vx
     this.y += this.vy
     if (this.x < 0) { this.x = 0; this.vx *= -1 }
@@ -147,8 +147,8 @@ onUnmounted(() => {
   top: 0; left: 0;
   width: 100%; height: 100%;
   pointer-events: none;
-  z-index: 9999;
-  pointer-events: none !important;
-  mix-blend-mode: screen;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.7;
 }
 </style>
