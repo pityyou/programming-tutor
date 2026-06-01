@@ -63,7 +63,16 @@ const cards: Record<string, { topic: string; items: Card[] }[]> = {
       topic: '常用模块',
       items: [
         { id: 'py-15', title: '文件操作', language: 'python', content: '`open()` 打开文件，支持 `r`(读)、`w`(写)、`a`(追加)、`rb`(二进制读) 等模式。推荐使用 `with` 语句自动关闭。`os` 和 `pathlib` 模块处理路径。', example: '# 写入文件\nwith open("test.txt", "w", encoding="utf-8") as f:\n    f.write("Hello, Python!\\n")\n    f.write("第二行内容\\n")\n\n# 读取文件\nwith open("test.txt", "r", encoding="utf-8") as f:\n    lines = f.readlines()\n    for line in lines:\n        print(line.strip())\n\n# pathlib\nfrom pathlib import Path\np = Path("data") / "file.txt"\nprint(p.suffix)  # .txt' },
-        { id: 'py-16', title: '正则表达式', language: 'python', content: '`re` 模块提供正则表达式支持。常用：`search()`、`match()`、`findall()`、`sub()`、`split()`。使用 `r""` 原始字符串避免转义。', example: 'import re\n\ntext = "我的邮箱是 alice@example.com，电话是 138-0000-1234"\n\n# 查找邮箱\nemail = re.search(r\'[\\w.]+@[\\w.]+\\.[a-z]+\', text)\nprint(email.group())  # alice@example.com\n\n# 查找所有数字\nphones = re.findall(r\'\\d{3}-\\d{4}-\\d{4}\', text)\n\n# 替换\ncleaned = re.sub(r\'\\d{3}-(\\d{4})-(\\d{4})\', r\'***-\\1-\\2\', text)' },
+        { id: 'py-16', title: '正则表达式', language: 'python', content: '`re` 模块提供正则表达式支持。常用：`search()`、`match()`、`findall()`、`sub()`。', example: 'import re\nemail = re.search(r\'[\\w.]+@[\\w.]+\\.[a-z]+\', "a@b.com")\nprint(email.group())' },
+      ],
+    },
+    {
+      topic: '进阶开发',
+      items: [
+        { id: 'py-17', title: '异步编程 async/await', language: 'python', content: '`async def` 定义协程，`await` 挂起等待。`asyncio.run()` 启动事件循环。`asyncio.gather()` 并发执行。适用于 IO 密集型任务。', example: 'import asyncio\n\nasync def fetch(url):\n    print(f"获取 {url}...")\n    await asyncio.sleep(1)  # 模拟网络请求\n    return f"{url} 的数据"\n\nasync def main():\n    results = await asyncio.gather(\n        fetch("url1"),\n        fetch("url2"),\n        fetch("url3"),\n    )\n    print(results)\n\nasyncio.run(main())' },
+        { id: 'py-18', title: '类型提示 Type Hints', language: 'python', content: 'Python 3.5+ 支持类型注解（不强制）。`typing` 模块提供 `List`、`Dict`、`Optional`、`Union` 等。`mypy` 工具做静态类型检查。', example: 'from typing import List, Optional, Dict\n\ndef greet(name: str, age: int = 0) -> str:\n    return f"{name} {age}"\n\ndef average(nums: List[float]) -> Optional[float]:\n    if not nums: return None\n    return sum(nums) / len(nums)\n\nscores: Dict[str, int] = {"小明": 95}' },
+        { id: 'py-19', title: 'dataclass 数据类', language: 'python', content: 'Python 3.7+ `@dataclass` 自动生成 `__init__`、`__repr__`、`__eq__`。比普通类更简洁，支持默认值、不可变（`frozen=True`）。', example: 'from dataclasses import dataclass, field\n\n@dataclass\nclass Student:\n    name: str\n    age: int\n    scores: list = field(default_factory=list)\n    \n    @property\n    def average(self):\n        return sum(self.scores) / len(self.scores) if self.scores else 0\n\ns = Student("小明", 18, [90, 85, 95])\nprint(s)  # Student(name="小明", age=18, scores=[90, 85, 95])' },
+        { id: 'py-20', title: '上下文管理器', language: 'python', content: '`with` 语句自动管理资源。自定义：实现 `__enter__`/`__exit__`，或用 `@contextmanager` 装饰器。常见：`open()`、`threading.Lock()`。', example: 'from contextlib import contextmanager\n\nclass File:\n    def __init__(self, name):\n        self.name = name\n    def __enter__(self):\n        self.f = open(self.name, "r")\n        return self.f\n    def __exit__(self, *args):\n        self.f.close()\n\nwith File("test.txt") as f:\n    print(f.read())' },
       ],
     },
   ],
@@ -88,7 +97,16 @@ const cards: Record<string, { topic: string; items: Card[] }[]> = {
       topic: 'DOM 操作',
       items: [
         { id: 'js-7', title: 'DOM 查询与操作', language: 'javascript', content: '`querySelector`/`querySelectorAll` 用 CSS 选择器查找元素。`innerHTML`/`textContent` 修改内容，`classList` 管理类名，`style` 修改内联样式。', example: '// 查询元素\nconst btn = document.querySelector("#submit");\nconst items = document.querySelectorAll(".item");\n\n// 修改内容\nbtn.textContent = "提交中...";\n\n// 创建元素\nconst div = document.createElement("div");\ndiv.className = "card";\ndiv.innerHTML = "<h2>标题</h2><p>内容</p>";\ndocument.body.appendChild(div);\n\n// 类名操作\nbtn.classList.add("loading");\nbtn.classList.toggle("active");' },
-        { id: 'js-8', title: '事件处理', language: 'javascript', content: '`addEventListener` 绑定事件。事件冒泡从内到外传播。`event.target` 是触发元素，`event.currentTarget` 是监听元素。`preventDefault()` 阻止默认行为。', example: '// 事件监听\nconst btn = document.querySelector("#btn");\nbtn.addEventListener("click", (e) => {\n  e.preventDefault();\n  console.log("点击了按钮");\n});\n\n// 事件委托（利用冒泡）\ndocument.querySelector("#list").addEventListener("click", (e) => {\n  if (e.target.matches(".item")) {\n    console.log("点击了:", e.target.textContent);\n  }\n});\n\n// 键盘事件\ndocument.addEventListener("keydown", (e) => {\n  if (e.key === "Escape") console.log("按了 ESC");\n});' },
+        { id: 'js-8', title: '事件处理', language: 'javascript', content: '`addEventListener` 绑定事件。事件冒泡从内到外。`e.target` 触发元素，`e.preventDefault()` 阻止默认行为。事件委托利用冒泡优化性能。', example: 'btn.addEventListener("click", (e) => {\n  e.preventDefault();\n  console.log("点击了", e.target);\n});' },
+      ],
+    },
+    {
+      topic: '进阶特性',
+      items: [
+        { id: 'js-9', title: '闭包 Closure', language: 'javascript', content: '**闭包**：函数+其词法环境。内部函数可以访问外部函数的变量，即使外部函数已返回。用途：数据私有、模块化、柯里化。', example: 'function counter() {\n  let count = 0;\n  return function() {\n    count++;\n    return count;\n  };\n}\nconst c = counter();\nconsole.log(c()); // 1\nconsole.log(c()); // 2\nconsole.log(c()); // 3' },
+        { id: 'js-10', title: '原型链与类', language: 'javascript', content: 'JS 基于原型继承。每个对象有 `__proto__` 指向其原型。ES6 `class` 是语法糖，本质仍是原型。`extends`、`super` 简化继承。', example: 'class Animal {\n  constructor(name) {\n    this.name = name;\n  }\n  speak() {\n    return `${this.name} makes a sound`;\n  }\n}\n\nclass Dog extends Animal {\n  speak() {\n    return `${this.name}: 汪汪!`;\n  }\n}\n\nconst d = new Dog("旺财");\nconsole.log(d.speak()); // 旺财: 汪汪!' },
+        { id: 'js-11', title: '模块化 ES Modules', language: 'javascript', content: '`export` 导出，`import` 导入。支持默认导出和命名导出。动态 `import()` 返回 Promise，支持按需加载（代码分割）。', example: '// math.js\nexport function add(a, b) { return a + b; }\nexport const PI = 3.14159;\nexport default function greet(n) { return `Hi ${n}`; }\n\n// main.js\nimport greet, { add, PI } from "./math.js";\nconsole.log(greet("Alice"));  // Hi Alice\nconsole.log(add(1, 2));       // 3\n\n// 动态导入\nconst module = await import("./math.js");' },
+        { id: 'js-12', title: 'Set 与 Map', language: 'javascript', content: '`Set` 存储唯一值，`Map` 键值对（键可以是任意类型）。比数组/对象更适合查重和任意键映射场景。', example: '// Set 去重\nconst nums = [1, 2, 2, 3, 3, 3];\nconst unique = [...new Set(nums)];  // [1, 2, 3]\n\n// Map 任意键\nconst map = new Map();\nmap.set({id: 1}, "data");\nmap.set("key", "value");\n\nfor (const [k, v] of map) {\n  console.log(k, v);\n}' },
       ],
     },
   ],
@@ -114,7 +132,15 @@ const cards: Record<string, { topic: string; items: Card[] }[]> = {
       topic: '集合框架',
       items: [
         { id: 'jv-8', title: 'List/Set/Map', language: 'java', content: '`ArrayList` 随机访问快 O(1)，`LinkedList` 插入删除快。`HashSet` 无序去重，`TreeSet` 排序去重。`HashMap` 键值对 O(1)，`TreeMap` 按键排序。', example: 'import java.util.*;\n\n// ArrayList vs LinkedList\nList<Integer> list = new ArrayList<>(); // 读快\nList<Integer> linked = new LinkedList<>(); // 插入快\n\n// Set：去重\nSet<String> names = new HashSet<>();\nnames.add("Alice");\nnames.add("Bob");\nnames.add("Alice"); // 忽略重复\n\n// TreeSet 自动排序\nSet<Integer> sorted = new TreeSet<>(List.of(5, 2, 8, 1));\nSystem.out.println(sorted); // [1, 2, 5, 8]\n\n// TreeMap 键排序\nMap<String, Integer> map = new TreeMap<>();\nmap.put("C", 3); map.put("A", 1); map.put("B", 2);' },
-        { id: 'jv-9', title: 'Stream API', language: 'java', content: 'Java 8+ Stream 提供函数式数据处理：`filter`、`map`、`sorted`、`collect`。惰性求值，终端操作触发计算。`Collectors` 工具类提供常用收集器。', example: 'import java.util.*;\nimport java.util.stream.*;\n\nList<String> names = List.of("Alice", "Bob", "Charlie", "David");\n\n// Stream 链式操作\nList<String> result = names.stream()\n    .filter(n -> n.length() > 3)          // 过滤\n    .map(String::toUpperCase)              // 转换\n    .sorted()                              // 排序\n    .collect(Collectors.toList());         // 收集\n\n// 分组\nMap<Character, List<String>> grouped = names.stream()\n    .collect(Collectors.groupingBy(n -> n.charAt(0)));\n\n// 统计\nlong count = names.stream().filter(n -> n.startsWith("A")).count();' },
+        { id: 'jv-9', title: 'Stream API', language: 'java', content: 'Java 8+ Stream 提供函数式数据处理：`filter`、`map`、`sorted`、`collect`。惰性求值，`Collectors` 提供常用收集器。', example: 'List<String> names = List.of("Alice", "Bob", "Charlie");\nList<String> result = names.stream()\n    .filter(n -> n.length() > 3)\n    .map(String::toUpperCase)\n    .collect(Collectors.toList());' },
+      ],
+    },
+    {
+      topic: '进阶特性',
+      items: [
+        { id: 'jv-10', title: '并发与线程池', language: 'java', content: '`ExecutorService` 管理线程池。`Executors.newFixedThreadPool(n)` 创建固定大小池。`Future` 获取异步结果。`CompletableFuture` 支持链式异步操作。', example: 'import java.util.concurrent.*;\n\nExecutorService pool = Executors.newFixedThreadPool(3);\nFuture<Integer> future = pool.submit(() -> {\n    Thread.sleep(1000);\n    return 42;\n});\nSystem.out.println(future.get());  // 阻塞等待结果\npool.shutdown();' },
+        { id: 'jv-11', title: 'Optional 与空值处理', language: 'java', content: '`Optional<T>` 容器避免 NullPointerException。`ofNullable()`、`ifPresent()`、`orElse()`、`map()` 链式安全处理可能为空的值。', example: 'import java.util.Optional;\n\nOptional<String> name = Optional.ofNullable(getName());\nString display = name\n    .filter(n -> n.length() > 0)\n    .map(String::toUpperCase)\n    .orElse("未知");\n\nname.ifPresent(System.out::println);' },
+        { id: 'jv-12', title: '枚举 Enum', language: 'java', content: 'Java 枚举是特殊的类，可以有构造器、方法、字段。适合表示固定集合的常量。`values()` 遍历所有值，`switch` 可直接使用。', example: 'enum Day {\n    MON("周一"), TUE("周二"), WED("周三");\n    private String cn;\n    Day(String cn) { this.cn = cn; }\n    public String getCn() { return cn; }\n}\n\nDay today = Day.MON;\nSystem.out.println(today.getCn());  // 周一' },
       ],
     },
   ],
@@ -145,7 +171,14 @@ const cards: Record<string, { topic: string; items: Card[] }[]> = {
       topic: '现代C++特性',
       items: [
         { id: 'cp-8', title: 'auto 与 lambda', language: 'cpp', content: '`auto` 自动类型推导（C++11）。lambda 表达式 `[capture](params) -> ret { body }` 创建匿名函数对象。`[]` 捕获列表：`=` 值捕获，`&` 引用捕获。', example: '#include <algorithm>\n#include <vector>\n\n// auto 类型推导\nauto x = 42;          // int\nauto y = 3.14;        // double\nauto z = "hello"s;    // std::string (C++14)\n\n// lambda 表达式\nvector<int> nums = {5, 2, 8, 1, 9};\n\n// 排序 lambda\nsort(nums.begin(), nums.end(),\n     [](int a, int b) { return a > b; });\n\n// 闭包捕获\nint threshold = 5;\nauto count = count_if(nums.begin(), nums.end(),\n                      [threshold](int n) { return n > threshold; });' },
-        { id: 'cp-9', title: '移动语义', language: 'cpp', content: '移动语义（C++11）避免不必要的深拷贝。`std::move` 将左值转为右值引用，触发移动构造函数。`&&` 是右值引用，用于移动构造和完美转发。', example: '#include <string>\n#include <vector>\n\nstring createString() {\n    string s = "hello world this is a long string";\n    return s;  // RVO 或移动（自动）\n}\n\nint main() {\n    vector<int> v1 = {1, 2, 3, 4, 5};\n    vector<int> v2 = move(v1);  // v1 的资源转移到 v2\n    // v1 现在为空，不应再使用\n    \n    cout << "v2 size: " << v2.size() << endl;\n    cout << "v1 size: " << v1.size() << endl;  // 0\n    \n    return 0;\n}' },
+        { id: 'cp-9', title: '移动语义', language: 'cpp', content: '移动语义（C++11）避免不必要的深拷贝。`std::move` 将左值转为右值引用。`&&` 是右值引用。', example: 'vector<int> v1 = {1, 2, 3, 4, 5};\nvector<int> v2 = move(v1);  // 移动而非拷贝\ncout << v2.size();  // 5' },
+      ],
+    },
+    {
+      topic: '进阶特性',
+      items: [
+        { id: 'cp-10', title: 'RAII 与资源管理', language: 'cpp', content: '**RAII**：资源获取即初始化。构造函数获取资源，析构函数释放。智能指针、文件流、互斥锁都基于 RAII。避免手动 new/delete。', example: 'class File {\n    FILE* fp;\npublic:\n    File(const char* name) : fp(fopen(name, "r")) {}\n    ~File() { if (fp) fclose(fp); }\n    File(const File&) = delete;  // 禁止拷贝\n    File(File&& other) : fp(other.fp) { other.fp = nullptr; }\n    operator FILE*() { return fp; }\n};' },
+        { id: 'cp-11', title: '模板进阶', language: 'cpp', content: '**变参模板**（`template<typename... Args>`）：参数数量可变。**模板元编程**：编译期计算。`constexpr` 函数在编译期求值。', example: '// 变参模板\ntemplate<typename T>\nT sum(T t) { return t; }\n\ntemplate<typename T, typename... Args>\nT sum(T first, Args... rest) {\n    return first + sum(rest...);\n}\n// 用法: sum(1, 2, 3, 4) → 10\n\n// constexpr 编译期计算\nconstexpr int factorial(int n) {\n    return n <= 1 ? 1 : n * factorial(n - 1);\n}\nint arr[factorial(5)];  // 编译期确定大小' },
       ],
     },
   ],
@@ -163,7 +196,14 @@ const cards: Record<string, { topic: string; items: Card[] }[]> = {
       topic: '高级主题',
       items: [
         { id: 'c-5', title: '结构体与联合体', language: 'c', content: '`struct` 将多个变量组合成一个类型。`.` 访问成员，`->` 通过指针访问。`typedef` 定义类型别名。`union` 所有成员共享同一内存空间。', example: '#include <stdio.h>\n\ntypedef struct {\n    char name[50];\n    int age;\n    double score;\n} Student;\n\nvoid printStudent(Student* s) {\n    printf("%s, %d 岁, %.1f 分\\n", s->name, s->age, s->score);\n}\n\nint main() {\n    Student s1 = {"小明", 18, 95.5};\n    printStudent(&s1);\n    \n    // union 所有成员共享内存\n    union Data {\n        int i;\n        float f;\n        char str[20];\n    };\n    return 0;\n}' },
-        { id: 'c-6', title: '文件操作', language: 'c', content: '`fopen` 打开文件（模式：`r`读、`w`写、`a`追加、`rb`/`wb` 二进制）。`fprintf`/`fscanf` 格式化读写，`fread`/`fwrite` 二进制读写。`fclose` 关闭。', example: '#include <stdio.h>\n\nint main() {\n    // 写文件\n    FILE* fp = fopen("test.txt", "w");\n    if (!fp) { perror("打开失败"); return 1; }\n    fprintf(fp, "Hello, File!\\n");\n    fprintf(fp, "第二行\\n");\n    fclose(fp);\n    \n    // 读文件\n    fp = fopen("test.txt", "r");\n    char line[256];\n    while (fgets(line, sizeof(line), fp)) {\n        printf("%s", line);\n    }\n    fclose(fp);\n    \n    return 0;\n}' },
+        { id: 'c-6', title: '文件操作', language: 'c', content: '`fopen` 打开文件（模式：`r`读、`w`写、`a`追加、`rb`/`wb` 二进制）。`fprintf`/`fscanf` 格式化读写，`fread`/`fwrite` 二进制读写。`fclose` 关闭。', example: 'FILE* fp = fopen("test.txt", "w");\nif (!fp) { perror("打开失败"); return 1; }\nfprintf(fp, "Hello!\\n");\nfclose(fp);' },
+      ],
+    },
+    {
+      topic: '高级特性',
+      items: [
+        { id: 'c-7', title: '位运算', language: 'c', content: '`&` 与、`|` 或、`^` 异或、`~` 取反、`<<` 左移、`>>` 右移。常见用途：标志位、乘除2的幂、RGB颜色操作。', example: '#include <stdio.h>\n\nint main() {\n    int flags = 0;\n    flags |= (1 << 3);   // 设置第3位\n    flags &= ~(1 << 3);  // 清除第3位\n    if (flags & (1 << 3)) printf("set\\n");\n    \n    int swapped = ((x & 0xFF) << 8) | ((x >> 8) & 0xFF);\n    return 0;\n}' },
+        { id: 'c-8', title: '函数指针与回调', language: 'c', content: '函数名即地址，可赋值给函数指针。`typedef` 简化声明。用于回调、qsort 比较器、策略模式。', example: '#include <stdio.h>\n\ntypedef int (*Operation)(int, int);\n\nint add(int a, int b) { return a + b; }\nint multiply(int a, int b) { return a * b; }\n\nvoid calc(Operation op, int x, int y) {\n    printf("结果: %d\\n", op(x, y));\n}\n\nint main() {\n    calc(add, 3, 4);       // 7\n    calc(multiply, 3, 4);  // 12\n    return 0;\n}' },
       ],
     },
   ],
@@ -212,7 +252,15 @@ const cards: Record<string, { topic: string; items: Card[] }[]> = {
     {
       topic: '错误处理',
       items: [
-        { id: 'go-9', title: 'error 与 panic', language: 'go', content: 'Go 不使用异常，而是通过返回 `error` 值来处理错误。`if err != nil` 是 Go 的标志性写法。`panic` 仅在不可恢复的错误时使用，`recover` 在 defer 中捕获。', example: 'package main\n\nimport (\n    "fmt"\n    "os"\n)\n\nfunc readFile(path string) error {\n    file, err := os.Open(path)\n    if err != nil {\n        return fmt.Errorf("打开文件失败 %s: %w", path, err)\n    }\n    defer file.Close()\n    \n    // 读取文件...\n    return nil\n}\n\nfunc main() {\n    if err := readFile("test.txt"); err != nil {\n        fmt.Println("错误:", err)\n        return\n    }\n    fmt.Println("读取成功")\n    \n    // recover 示例\n    defer func() {\n        if r := recover(); r != nil {\n            fmt.Println("捕获到 panic:", r)\n        }\n    }()\n}' },
+        { id: 'go-9', title: 'error 与 panic', language: 'go', content: 'Go 不使用异常，通过返回 `error` 值处理错误。`if err != nil` 是标志性写法。`panic` 仅不可恢复时使用，`recover` 在 defer 中捕获。', example: 'func readFile(path string) error {\n    f, err := os.Open(path)\n    if err != nil { return err }\n    defer f.Close()\n    return nil\n}' },
+      ],
+    },
+    {
+      topic: '进阶并发',
+      items: [
+        { id: 'go-10', title: 'select 多路复用', language: 'go', content: '`select` 同时监听多个 channel 操作，哪个先就绪就执行哪个。`default` 分支防止阻塞。常用于超时控制、非阻塞收发。', example: 'select {\ncase msg := <-ch1:\n    fmt.Println("ch1:", msg)\ncase msg := <-ch2:\n    fmt.Println("ch2:", msg)\ncase <-time.After(1 * time.Second):\n    fmt.Println("超时")\ndefault:\n    fmt.Println("无数据")\n}' },
+        { id: 'go-11', title: 'sync.Mutex 互斥锁', language: 'go', content: '`sync.Mutex` 保护共享数据。`Lock()` 加锁，`defer Unlock()` 确保释放。`sync.RWMutex` 支持读共享写独占。', example: 'type Counter struct {\n    mu sync.Mutex\n    val int\n}\nfunc (c *Counter) Inc() {\n    c.mu.Lock()\n    defer c.mu.Unlock()\n    c.val++\n}' },
+        { id: 'go-12', title: 'Context 上下文', language: 'go', content: '`context.Context` 传递请求范围的值、取消信号、超时。`WithCancel`、`WithTimeout`、`WithDeadline`。HTTP 请求中常用 `r.Context()`。', example: 'ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)\ndefer cancel()\n\nselect {\ncase <-doWork(ctx):\n    fmt.Println("完成")\ncase <-ctx.Done():\n    fmt.Println("超时:", ctx.Err())\n}' },
       ],
     },
   ],
@@ -250,6 +298,36 @@ const cards: Record<string, { topic: string; items: Card[] }[]> = {
       items: [
         { id: 'al-14', title: '栈与队列', language: 'algo', content: '**栈**（LIFO）：后进先出。**队列**（FIFO）：先进先出。应用：括号匹配、BFS、表达式求值。', example: 'from collections import deque\n# 栈\nstack = []; stack.append(1); stack.pop()\n# 队列\nq = deque(); q.append(1); q.popleft()\n# 括号匹配\ndef is_valid(s):\n    stack, pairs = [], {\')\': \'(\'}\n    for c in s:\n        if c in pairs:\n            if not stack or stack.pop() != pairs[c]: return False\n        else: stack.append(c)\n    return not stack' },
         { id: 'al-15', title: '哈希表', language: 'algo', content: '**核心**：键→值的 O(1) 映射。常用于去重、计数、缓存。**空间换时间**的经典实现。', example: 'def two_sum(nums, target):\n    seen = {}\n    for i, num in enumerate(nums):\n        comp = target - num\n        if comp in seen: return [seen[comp], i]\n        seen[num] = i\n    return []' },
+      ],
+    },
+    {
+      topic: '图论算法',
+      items: [
+        { id: 'al-16', title: 'Dijkstra 最短路径', language: 'algo', content: '**思想**：贪心+松弛。每次选距离最小的未访问节点，更新邻居距离。**O((V+E)logV)** 堆优化。不可处理负权边。', example: 'import heapq\ndef dijkstra(graph, start):\n    dist = {start: 0}\n    pq = [(0, start)]\n    while pq:\n        d, u = heapq.heappop(pq)\n        if d > dist.get(u, float("inf")): continue\n        for v, w in graph[u].items():\n            nd = d + w\n            if nd < dist.get(v, float("inf")):\n                dist[v] = nd\n                heapq.heappush(pq, (nd, v))\n    return dist' },
+        { id: 'al-17', title: '拓扑排序', language: 'algo', content: '**条件**：有向无环图（DAG）。Kahn算法（BFS+入度表）或 DFS。**O(V+E)**。应用：依赖管理、课程安排。', example: 'from collections import deque\ndef topo_sort(graph, indegree):\n    q = deque([u for u in indegree if indegree[u] == 0])\n    result = []\n    while q:\n        u = q.popleft()\n        result.append(u)\n        for v in graph[u]:\n            indegree[v] -= 1\n            if indegree[v] == 0: q.append(v)\n    return result if len(result) == len(graph) else []' },
+        { id: 'al-18', title: 'Union-Find 并查集', language: 'algo', content: '**用途**：动态连通性问题。路径压缩+按秩合并，均摊复杂度接近 O(1)。应用：Kruskal、岛屿问题。', example: 'class UF:\n    def __init__(self, n):\n        self.p = list(range(n))\n        self.r = [0] * n\n    def find(self, x):\n        if self.p[x] != x:\n            self.p[x] = self.find(self.p[x])\n        return self.p[x]\n    def union(self, x, y):\n        rx, ry = self.find(x), self.find(y)\n        if rx == ry: return\n        if self.r[rx] < self.r[ry]: rx, ry = ry, rx\n        self.p[ry] = rx\n        if self.r[rx] == self.r[ry]: self.r[rx] += 1' },
+      ],
+    },
+    {
+      topic: '动态规划进阶',
+      items: [
+        { id: 'al-19', title: '01 背包问题', language: 'algo', content: 'N件物品，容量W，每件选或不选。`dp[i][w]`=前i件容量w的最大价值。可空间优化为一维（倒序遍历）。', example: 'def knapsack(weights, values, W):\n    dp = [0] * (W + 1)\n    for i in range(len(weights)):\n        for w in range(W, weights[i] - 1, -1):\n            dp[w] = max(dp[w], dp[w - weights[i]] + values[i])\n    return dp[W]' },
+        { id: 'al-20', title: 'LCS 最长公共子序列', language: 'algo', content: '两个序列的最长公共子序列。`dp[i][j]`=第一串前i个和第二串前j个的LCS。相等则`dp[i-1][j-1]+1`，否则取max。', example: 'def lcs(text1, text2):\n    m, n = len(text1), len(text2)\n    dp = [[0]*(n+1) for _ in range(m+1)]\n    for i in range(1, m+1):\n        for j in range(1, n+1):\n            if text1[i-1] == text2[j-1]:\n                dp[i][j] = dp[i-1][j-1] + 1\n            else:\n                dp[i][j] = max(dp[i-1][j], dp[i][j-1])\n    return dp[m][n]' },
+      ],
+    },
+    {
+      topic: '字符串算法',
+      items: [
+        { id: 'al-21', title: 'KMP 字符串匹配', language: 'algo', content: '**思想**：利用模式串自身前后缀相似性，匹配失败不回溯主串。构建 next 数组。**O(n+m)**。', example: 'def kmp(text, pattern):\n    if not pattern: return 0\n    nxt = [0] * len(pattern)\n    j = 0\n    for i in range(1, len(pattern)):\n        while j > 0 and pattern[i] != pattern[j]:\n            j = nxt[j-1]\n        if pattern[i] == pattern[j]: j += 1\n        nxt[i] = j\n    j = 0\n    for i in range(len(text)):\n        while j > 0 and text[i] != pattern[j]:\n            j = nxt[j-1]\n        if text[i] == pattern[j]: j += 1\n        if j == len(pattern): return i - j + 1\n    return -1' },
+        { id: 'al-22', title: '滑动窗口', language: 'algo', content: '**思想**：维护窗口在数组上滑动，O(1)更新状态。应用：最长无重复子串、最小覆盖子串。', example: 'def length_of_longest_substring(s):\n    seen, left, max_len = {}, 0, 0\n    for right, c in enumerate(s):\n        if c in seen and seen[c] >= left:\n            left = seen[c] + 1\n        seen[c] = right\n        max_len = max(max_len, right - left + 1)\n    return max_len' },
+      ],
+    },
+    {
+      topic: '树结构进阶',
+      items: [
+        { id: 'al-23', title: 'Trie 字典树', language: 'algo', content: '**用途**：高效前缀匹配和字符串查找。每个节点存字符和子节点哈希表。插入/查找 O(L)。应用：自动补全、拼写检查。', example: 'class Trie:\n    def __init__(self):\n        self.root = {}\n    def insert(self, word):\n        node = self.root\n        for c in word:\n            if c not in node:\n                node[c] = {}\n            node = node[c]\n        node["#"] = True\n    def search(self, word):\n        node = self.root\n        for c in word:\n            if c not in node: return False\n            node = node[c]\n        return "#" in node' },
+        { id: 'al-24', title: '线段树', language: 'algo', content: '**用途**：区间查询和更新（区间和、最值）。每个节点代表一个区间。建树 O(n)，查询/点更新 O(log n)。', example: 'class SegTree:\n    def __init__(self, arr):\n        self.n = len(arr)\n        self.t = [0] * (4 * self.n)\n        self._build(arr, 1, 0, self.n - 1)\n    def _build(self, arr, node, l, r):\n        if l == r: self.t[node] = arr[l]; return\n        mid = (l + r) // 2\n        self._build(arr, node*2, l, mid)\n        self._build(arr, node*2+1, mid+1, r)\n        self.t[node] = self.t[node*2] + self.t[node*2+1]\n    def query(self, ql, qr, node=1, l=0, r=None):\n        if r is None: r = self.n - 1\n        if ql > r or qr < l: return 0\n        if ql <= l and r <= qr: return self.t[node]\n        mid = (l + r) // 2\n        return self.query(ql, qr, node*2, l, mid) + self.query(ql, qr, node*2+1, mid+1, r)' },
+        { id: 'al-25', title: '二叉搜索树 BST', language: 'algo', content: '**性质**：左 < 根 < 右。查找/插入 O(h)，平衡时 O(log n)。中序遍历得到有序序列。', example: 'class BST:\n    def __init__(self, val=None):\n        self.val = val\n        self.L = self.R = None\n    def insert(self, v):\n        if self.val is None: self.val = v; return\n        if v < self.val:\n            if self.L: self.L.insert(v)\n            else: self.L = BST(v)\n        else:\n            if self.R: self.R.insert(v)\n            else: self.R = BST(v)\n    def inorder(self):\n        res = []\n        if self.L: res += self.L.inorder()\n        if self.val is not None: res.append(self.val)\n        if self.R: res += self.R.inorder()\n        return res' },
       ],
     },
   ],

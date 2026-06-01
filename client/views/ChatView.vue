@@ -13,6 +13,7 @@ import ChatHistory from '../src/components/ChatHistory.vue'
 import KnowledgeCards from '../src/components/KnowledgeCards.vue'
 import ExercisePanel from '../src/components/ExercisePanel.vue'
 import VoiceInput from '../src/components/VoiceInput.vue'
+import QuickCommands from '../src/components/QuickCommands.vue'
 
 const router = useRouter()
 const store = useAppStore()
@@ -296,6 +297,7 @@ function exportChat() {
             <span></span><span></span><span></span>
           </div>
         </div>
+        <QuickCommands @command="(t: string) => streamReply(t)" />
         <div class="chat-input">
           <VoiceInput @result="(t: string) => { input = t; handleSend() }" />
           <textarea
