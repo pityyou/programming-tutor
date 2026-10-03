@@ -30,7 +30,61 @@ export async function initDb() {
       id TEXT PRIMARY KEY,
       username TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
+      email TEXT,
       created_at TEXT DEFAULT (datetime('now'))
+    )
+  `)
+
+  // Migration: add email column for password recovery (old accounts have NULL)
+  try {
+    db.run('ALTER TABLE users ADD COLUMN email TEXT')
+  } catch { /* column already exists */ }
+  db.run('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)')
+
+  // Case-insensitive unique index for usernames ('Bob' and 'bob' are the same account)
+  try {
+    db.run('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username_ci ON users(username COLLATE NOCASE)')
+  } catch {
+    // Existing duplicate usernames differ only in case → index cannot be created.
+    // Registration/login still compare with COLLATE NOCASE as a fallback.
+    console.warn('[db] 用户名大小写不敏感唯一索引创建失败（可能存在仅大小写不同的历史用户名）')
+  }
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS email_verifications (
+      id TEXT PRIMARY KEY,
+      email TEXT NOT NULL,
+      code TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now'))
+    )
+  `)
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS password_resets (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      code TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `)
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS practice_records (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      language TEXT DEFAULT '',
+      difficulty TEXT DEFAULT '',
+      topic TEXT DEFAULT '',
+      exercise TEXT NOT NULL,
+      user_code TEXT DEFAULT '',
+      test_summary TEXT DEFAULT '',
+      passed INTEGER DEFAULT 0,
+      feedback TEXT DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id)
     )
   `)
 
@@ -50,6 +104,7 @@ export async function initDb() {
       session_id TEXT NOT NULL,
       role TEXT NOT NULL CHECK(role IN ('user', 'assistant')),
       content TEXT NOT NULL,
+      seq INTEGER DEFAULT 0,
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (session_id) REFERENCES sessions(id)
     );
@@ -66,6 +121,13 @@ export async function initDb() {
     )
   `)
 
+  // Migration: add seq column to messages for stable ordering.
+  // `datetime('now')` has second granularity, so messages inserted in the
+  // same second could otherwise come back in arbitrary order.
+  try {
+    db.run('ALTER TABLE messages ADD COLUMN seq INTEGER DEFAULT 0')
+  } catch { /* column already exists */ }
+
   persist()
   console.log('Database initialized')
 }
@@ -76,15 +138,48 @@ export function getDb() {
 }
 
 function persist() {
-  const data = db.export()
-  const buffer = Buffer.from(data)
-  fs.writeFileSync(DB_PATH, buffer)
+  try {
+    const data = db.export()
+    const buffer = Buffer.from(data)
+    fs.writeFileSync(DB_PATH, buffer)
+  } catch (err) {
+    console.error('DB persist error:', err)
+  }
 }
 
-// Wrap queries to auto-persist
+// Throttled persistence: coalesce writes within a short window, then write
+// the whole DB file once. Exporting the full database on every single write
+// gets slow as data grows. A final flush happens on process exit.
+let dirty = false
+let persistTimer = null
+
+function schedulePersist() {
+  dirty = true
+  if (persistTimer) return
+  persistTimer = setTimeout(() => {
+    persistTimer = null
+    if (dirty) {
+      dirty = false
+      persist()
+    }
+  }, 300)
+}
+
+function flushNow() {
+  if (dirty) {
+    dirty = false
+    persist()
+  }
+}
+
+process.on('exit', flushNow)
+process.on('SIGINT', () => { flushNow(); process.exit(0) })
+process.on('SIGTERM', () => { flushNow(); process.exit(0) })
+
+// Wrap queries to auto-persist (throttled)
 export function dbRun(sql, params = []) {
   const result = getDb().run(sql, params)
-  persist()
+  schedulePersist()
   return result
 }
 
@@ -110,9 +205,9 @@ export function dbAll(sql, params = []) {
   return rows
 }
 
-// For INSERT/UPDATE/DELETE, persist
+// For INSERT/UPDATE/DELETE, persist (throttled)
 export function dbExec(sql, params = []) {
   const result = getDb().run(sql, params)
-  persist()
+  schedulePersist()
   return result
 }

@@ -3,11 +3,15 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '../src/stores/app'
 import { sendMessage } from '../src/api/chat'
+import { bindEmail } from '../src/api/auth'
+import { getPractices, deletePractice, PracticeRecord } from '../src/api/practice'
 import MarkdownRenderer from '../src/components/MarkdownRenderer.vue'
+import { useToast } from '../src/stores/toast'
 import api from '../src/api'
 
 const router = useRouter()
 const store = useAppStore()
+const toast = useToast()
 
 if (!store.isLoggedIn) router.replace('/login')
 
@@ -23,19 +27,39 @@ const snippets = ref<any[]>([])
 const report = ref('')
 const reportLoading = ref(false)
 const chatSessions = ref<any[]>([])
+const practiceRecords = ref<PracticeRecord[]>([])
 
 onMounted(async () => {
   try {
-    const [sRes, snRes, chRes] = await Promise.all([
+    const [sRes, snRes, chRes, pRes] = await Promise.all([
       api.get('/stats'),
       api.get('/snippets'),
       api.get('/chat/sessions'),
+      getPractices(10),
     ])
     stats.value = { ...sRes.data, snippetCount: snRes.data.snippets?.length || 0 }
     snippets.value = snRes.data.snippets || []
     chatSessions.value = chRes.data.sessions || []
+    practiceRecords.value = pRes.data.records || []
   } catch { /* ignore */ }
 })
+
+const practiceTotal = computed(() => practiceRecords.value.length)
+const practicePassed = computed(() => practiceRecords.value.filter(r => r.passed).length)
+
+async function removePractice(id: string) {
+  try {
+    await deletePractice(id)
+    practiceRecords.value = practiceRecords.value.filter(r => r.id !== id)
+    toast.success('已删除练习记录')
+  } catch (e: any) {
+    toast.error(e.response?.data?.error || '删除失败')
+  }
+}
+
+function difficultyLabel(d: string) {
+  return d === 'easy' ? '简单' : d === 'medium' ? '中等' : d === 'hard' ? '困难' : d
+}
 
 async function generateReport() {
   reportLoading.value = true
@@ -70,13 +94,75 @@ async function generateReport() {
 
 function goChat() { router.push('/chat') }
 
+// 老账号补绑邮箱（用于找回密码）
+const bindEmailInput = ref('')
+const bindingEmail = ref(false)
+
+async function submitBindEmail() {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(bindEmailInput.value.trim())) {
+    toast.error('请输入正确的邮箱地址')
+    return
+  }
+  bindingEmail.value = true
+  try {
+    const { data } = await bindEmail(bindEmailInput.value.trim())
+    store.user = data.user
+    localStorage.setItem('user', JSON.stringify(data.user))
+    toast.success('邮箱绑定成功，现在可以使用邮箱找回密码')
+    bindEmailInput.value = ''
+  } catch (e: any) {
+    toast.error(e.response?.data?.error || '绑定失败')
+  } finally {
+    bindingEmail.value = false
+  }
+}
+
+// Count distinct study days from session creation dates
+function studyDays(): number {
+  const days = new Set<string>()
+  for (const s of chatSessions.value) {
+    const d = (s.created_at || '').slice(0, 10)
+    if (d) days.add(d)
+  }
+  return days.size
+}
+
+// Longest streak of consecutive study days (ending today or yesterday)
+function maxStreak(): number {
+  const days = new Set<string>()
+  for (const s of chatSessions.value) {
+    const d = (s.created_at || '').slice(0, 10)
+    if (d) days.add(d)
+  }
+  if (days.size === 0) return 0
+  const sorted = [...days].sort()
+  let best = 1
+  let cur = 1
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = new Date(sorted[i - 1] + 'T00:00:00Z')
+    const curr = new Date(sorted[i] + 'T00:00:00Z')
+    const diff = Math.round((curr.getTime() - prev.getTime()) / 86400000)
+    if (diff === 1) {
+      cur += 1
+      best = Math.max(best, cur)
+    } else if (diff > 1) {
+      cur = 1
+    }
+  }
+  return best
+}
+
+const learnedLanguages = (() => {
+  try { return JSON.parse(localStorage.getItem('learned_languages') || '[]') as string[] } catch { return [] }
+})()
+
 const computedBadges = computed(() => [
   { name: '初次对话', icon: '💬', condition: '完成1次对话', earned: stats.value.totalSessions >= 1 },
   { name: '勤学好问', icon: '📚', condition: '完成10次对话', earned: stats.value.totalSessions >= 10 },
   { name: '代码收藏家', icon: '⭐', condition: '收藏5个代码', earned: stats.value.snippetCount >= 5 },
   { name: '消息达人', icon: '✉️', condition: '发送50条消息', earned: stats.value.totalMessages >= 50 },
-  { name: '持之以恒', icon: '🔥', condition: '连续3天学习', earned: stats.value.totalSessions >= 5 },
-  { name: '多语言探索者', icon: '🌍', condition: '学习3门语言', earned: false },
+  { name: '持之以恒', icon: '🔥', condition: '连续3天学习', earned: maxStreak() >= 3 },
+  { name: '多语言探索者', icon: '🌍', condition: '学习3门语言', earned: learnedLanguages.length >= 3 },
 ])
 </script>
 
@@ -112,6 +198,29 @@ const computedBadges = computed(() => [
         </div>
       </div>
 
+      <div class="section" v-if="practiceRecords.length > 0">
+        <h2>练习记录（错题本）</h2>
+        <p class="practice-stat">共练习 {{ practiceTotal }} 次，通过 {{ practicePassed }} 次</p>
+        <div class="practice-list">
+          <div v-for="r in practiceRecords" :key="r.id" class="practice-item">
+            <div class="practice-main">
+              <span
+                :class="['practice-badge', r.hasTests ? (r.passed ? 'pass' : 'fail') : 'untested']"
+              >{{ r.hasTests ? (r.passed ? '✅ 通过' : '❌ 未过') : '📝 已练习' }}</span>
+              <div class="practice-text">
+                <div class="practice-title">{{ r.exercise }}</div>
+                <div class="practice-meta">
+                  <span class="snip-lang">{{ r.language }}</span>
+                  <span v-if="r.difficulty" class="practice-diff">{{ difficultyLabel(r.difficulty) }}</span>
+                  <span class="practice-date">{{ r.created_at?.slice(0, 10) }}</span>
+                </div>
+              </div>
+            </div>
+            <button class="practice-del" title="删除记录" @click="removePractice(r.id)">✕</button>
+          </div>
+        </div>
+      </div>
+
       <div class="section" v-if="snippets.length > 0">
         <h2>最近收藏的代码</h2>
         <div class="snippet-list">
@@ -133,6 +242,35 @@ const computedBadges = computed(() => [
             <span class="badge-name">{{ b.name }}</span>
             <span class="badge-cond">{{ b.condition }}</span>
           </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>账户安全</h2>
+        <div class="account-card">
+          <div class="account-row">
+            <span class="account-label">用户名</span>
+            <span class="account-value">{{ store.user?.username }}</span>
+          </div>
+          <div class="account-row">
+            <span class="account-label">邮箱</span>
+            <span class="account-value" :class="{ unbound: !store.user?.email }">
+              {{ store.user?.email || '未绑定' }}
+            </span>
+          </div>
+          <div v-if="!store.user?.email" class="bind-row">
+            <input
+              v-model="bindEmailInput"
+              type="email"
+              placeholder="绑定邮箱，用于找回密码"
+              class="bind-input"
+              @keydown.enter.prevent="submitBindEmail"
+            />
+            <button class="btn-report" @click="submitBindEmail" :disabled="bindingEmail">
+              {{ bindingEmail ? '绑定中...' : '绑定邮箱' }}
+            </button>
+          </div>
+          <p class="account-tip">忘记密码时可通过绑定的邮箱收取验证码重置</p>
         </div>
       </div>
 
@@ -239,6 +377,84 @@ h2 { font-size: 18px; margin-bottom: 12px; color: var(--accent); }
 .btn-primary { background: var(--accent); color: var(--bg-primary); }
 .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); }
 .badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.practice-stat { font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; }
+.practice-list { display: flex; flex-direction: column; gap: 8px; max-width: 640px; }
+.practice-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+.practice-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.practice-badge {
+  flex-shrink: 0;
+  font-size: 12px;
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+.practice-badge.pass { background: rgba(166, 227, 161, 0.15); color: var(--success); }
+.practice-badge.fail { background: rgba(243, 139, 168, 0.15); color: var(--danger); }
+.practice-badge.untested { background: var(--bg-tertiary); color: var(--text-secondary); }
+.practice-text { min-width: 0; }
+.practice-title {
+  font-size: 13px;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 380px;
+}
+.practice-meta { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.practice-diff { font-size: 11px; color: var(--text-muted); }
+.practice-date { font-size: 11px; color: var(--text-muted); }
+.practice-del {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.practice-del:hover { background: var(--bg-tertiary); color: var(--danger); }
+.account-card {
+  background: var(--bg-secondary);
+  border-radius: 10px;
+  padding: 16px 18px;
+  max-width: 420px;
+}
+.account-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--bg-tertiary);
+}
+.account-row:last-of-type { border-bottom: none; }
+.account-label { font-size: 13px; color: var(--text-secondary); }
+.account-value { font-size: 14px; font-weight: 600; }
+.account-value.unbound { color: var(--warning); font-weight: 400; }
+.bind-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.bind-input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--bg-tertiary);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+}
+.bind-input:focus { border-color: var(--accent); }
+.account-tip { font-size: 11px; color: var(--text-muted); margin-top: 10px; }
 .badge {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   background: var(--bg-secondary); padding: 14px 10px; border-radius: 10px;

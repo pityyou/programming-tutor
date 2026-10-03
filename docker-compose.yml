@@ -1,34 +1,43 @@
-version: '3.8'
+# ============================================================
+# 代码执行沙箱
+#
+# 架构：Node 后端在宿主机上用 PM2 运行（端口 3000），
+#       学生代码在下面这个容器里执行 —— 容器打包了
+#       Python / Node.js / Java / Go / C / C++ 全部运行时，
+#       服务器本身无需安装任何语言环境。
+#
+#   docker compose up -d --build     构建并启动
+#   docker compose logs -f sandbox   查看日志
+#   docker compose down              停止
+# ============================================================
 services:
   sandbox:
-    build: ./sandbox
+    build:
+      context: ./sandbox
+      args:
+        # 需要换版本时改这里
+        GO_VERSION: "1.23.4"
+        NODE_VERSION: "20.18.1"
+    image: programming-tutor-sandbox:1.0
     container_name: code-sandbox
+
+    # 宿主 ./temp 挂载到容器 /code：
+    # 后端把学生代码写进 temp，容器内执行，产物也写回同一目录
     volumes:
       - ./temp:/code
     working_dir: /code
-    command: ["sleep", "infinity"]
-    restart: unless-stopped
-    mem_limit: 256m
-    cpus: 0.5
+
+    # 资源限制：防止学生代码吃光服务器
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 128
+
+    # 沙箱完全断网：学生代码无法访问外网/内网
+    # （标准库程序、算法练习都不需要网络）
     network_mode: none
+
     security_opt:
       - no-new-privileges:true
-    read_only: false
 
-  server:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./server:/app
-      - ./temp:/app/temp
-    environment:
-      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
-      - DEEPSEEK_BASE_URL=${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}
-      - JWT_SECRET=${JWT_SECRET:-dev-secret}
-      - DOCKER_SANDBOX=true
-    depends_on:
-      - sandbox
-    command: ["node", "src/index.js"]
+    restart: unless-stopped
+    command: ["sleep", "infinity"]

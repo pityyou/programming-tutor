@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import ParticleBackground from './components/ParticleBackground.vue'
+import ToastHost from './components/ToastHost.vue'
 </script>
 
 <template>
@@ -8,6 +9,7 @@ import ParticleBackground from './components/ParticleBackground.vue'
   <div class="app-content">
     <RouterView />
   </div>
+  <ToastHost />
 </template>
 
 <style scoped>

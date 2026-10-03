@@ -3,9 +3,11 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '../src/stores/app'
 import api from '../src/api'
+import { useToast } from '../src/stores/toast'
 
 const router = useRouter()
 const store = useAppStore()
+const toast = useToast()
 if (!store.isLoggedIn) router.replace('/login')
 
 const snippets = ref<any[]>([])
@@ -35,11 +37,16 @@ async function deleteSnippet(id: string) {
   try {
     await api.delete(`/snippets/${id}`)
     snippets.value = snippets.value.filter(s => s.id !== id)
-  } catch { /* ignore */ }
+    toast.success('已删除')
+  } catch (e: any) {
+    toast.error(e.response?.data?.error || '删除失败')
+  }
 }
 
 function copyCode(code: string) {
-  navigator.clipboard.writeText(code).catch(() => {})
+  navigator.clipboard.writeText(code)
+    .then(() => toast.success('已复制'))
+    .catch(() => toast.error('复制失败'))
 }
 </script>
 

@@ -2,9 +2,11 @@ import { Router } from 'express'
 import { v4 as uuid } from 'uuid'
 import { dbGet, dbAll, dbExec } from '../models/db.js'
 import { authMiddleware } from '../middleware/auth.js'
+import { rateLimit } from '../middleware/rateLimit.js'
 
 export const snippetsRouter = Router()
 snippetsRouter.use(authMiddleware)
+snippetsRouter.use(rateLimit({ windowMs: 60000, max: 30, message: '操作过于频繁，请稍后再试' }))
 
 // Get all snippets
 snippetsRouter.get('/', (req, res) => {
@@ -19,10 +21,15 @@ snippetsRouter.get('/', (req, res) => {
 snippetsRouter.post('/', (req, res) => {
   const { language, code, title, tags } = req.body
   if (!code) return res.status(400).json({ error: '代码不能为空' })
+  if (typeof code !== 'string' || code.length > 50000) {
+    return res.status(400).json({ error: '代码过长（最多 50000 字符）' })
+  }
+  // tags 可能是数组或字符串，避免直接 .join 崩溃
+  const tagStr = Array.isArray(tags) ? tags.join(',') : String(tags || '')
   const id = uuid()
   dbExec(
     'INSERT INTO snippets (id, user_id, language, code, title, tags) VALUES (?, ?, ?, ?, ?, ?)',
-    [id, req.userId, language || '', code, title || '', (tags || []).join(',')]
+    [id, req.userId, String(language || ''), code, String(title || '').slice(0, 200), tagStr.slice(0, 500)]
   )
   res.json({ id })
 })

@@ -1,6 +1,20 @@
 import jwt from 'jsonwebtoken'
+import crypto from 'crypto'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production'
+// Placeholder secrets that must never be used in production
+const INSECURE_SECRETS = [
+  'dev-secret-change-in-production',
+  'change-this-to-a-random-secret',
+  'dev-secret',
+]
+
+let JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET || INSECURE_SECRETS.includes(JWT_SECRET)) {
+  console.warn(
+    '[auth] JWT_SECRET 未设置或仍为默认值，已生成临时随机密钥（重启后已登录用户需重新登录）。请在 server/.env 中配置强随机 JWT_SECRET。'
+  )
+  JWT_SECRET = crypto.randomBytes(32).toString('hex')
+}
 
 export function authMiddleware(req, res, next) {
   const header = req.headers.authorization

@@ -3,14 +3,14 @@ import { ref, computed } from 'vue'
 
 export const useAppStore = defineStore('app', () => {
   const savedUser = localStorage.getItem('user')
-  const user = ref<{ id: string; username: string } | null>(savedUser ? JSON.parse(savedUser) : null)
+  const user = ref<{ id: string; username: string; email?: string | null } | null>(savedUser ? JSON.parse(savedUser) : null)
   const token = ref(localStorage.getItem('token') || '')
   const provider = ref(localStorage.getItem('provider') || 'deepseek')
   const model = ref(localStorage.getItem('model') || 'deepseek-chat')
 
   const isLoggedIn = computed(() => !!token.value && !!user.value)
 
-  function setAuth(u: { id: string; username: string }, t: string) {
+  function setAuth(u: { id: string; username: string; email?: string | null }, t: string) {
     user.value = u
     token.value = t
     localStorage.setItem('token', t)

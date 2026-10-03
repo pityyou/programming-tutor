@@ -1,7 +1,14 @@
 node_modules/
 dist/
 .vite/
-*.db
+
+# 敏感文件与运行时数据
 .env
-temp/
-data/
+*.db
+/server/temp/
+/server/data/
+
+# 本地 IDE / 工具配置
+.idea/
+.claude/
+*.log

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import api from '../api'
+import { useToast } from '../stores/toast'
 
 interface Session {
   id: string
@@ -11,7 +12,10 @@ interface Session {
 const emit = defineEmits<{
   'select-session': [id: string]
   'new-chat': []
+  'deleted': [id: string]
 }>()
+
+const toast = useToast()
 
 const sessions = ref<Session[]>([])
 const search = ref('')
@@ -48,13 +52,18 @@ function startRename(s: Session) {
 }
 
 async function saveRename(s: Session) {
+  // 回车与失焦会同时触发，已在保存中就跳过，避免重复请求
+  if (editingId.value !== s.id) return
+  editingId.value = null
   if (editingTitle.value.trim()) {
     try {
       await api.patch(`/chat/sessions/${s.id}`, { title: editingTitle.value.trim() })
       s.title = editingTitle.value.trim()
-    } catch { /* ignore */ }
+      toast.success('已重命名')
+    } catch (e: any) {
+      toast.error(e.response?.data?.error || '重命名失败')
+    }
   }
-  editingId.value = null
 }
 
 function confirmDelete(id: string) {
@@ -63,17 +72,25 @@ function confirmDelete(id: string) {
 
 async function doDelete() {
   if (!deletingId.value) return
+  const deletedId = deletingId.value
   try {
-    await api.delete(`/chat/sessions/${deletingId.value}`)
-    sessions.value = sessions.value.filter(s => s.id !== deletingId.value)
-    emit('new-chat')
-  } catch { /* ignore */ }
+    await api.delete(`/chat/sessions/${deletedId}`)
+    sessions.value = sessions.value.filter(s => s.id !== deletedId)
+    // 只有删掉的正是当前会话时才需要清空对话区
+    emit('deleted', deletedId)
+    toast.success('对话已删除')
+  } catch (e: any) {
+    toast.error(e.response?.data?.error || '删除失败')
+  }
   deletingId.value = null
 }
 
 function cancelDelete() {
   deletingId.value = null
 }
+
+// Expose so the parent can refresh the list when a new session is saved
+defineExpose({ loadSessions })
 </script>
 
 <template>

@@ -11,12 +11,16 @@ function getClient() {
   return client
 }
 
-export async function* streamDeepSeek(messages, model = 'deepseek-chat') {
-  const stream = await getClient().chat.completions.create({
-    model,
-    messages: [{ role: 'system', content: getSystemPrompt() }, ...messages],
-    stream: true,
-  })
+export async function* streamDeepSeek(messages, model = 'deepseek-chat', signal) {
+  const stream = await getClient().chat.completions.create(
+    {
+      model,
+      messages: [{ role: 'system', content: getSystemPrompt() }, ...messages],
+      stream: true,
+    },
+    // 客户端断开时中止上游请求，避免继续消耗 token
+    signal ? { signal } : undefined
+  )
 
   for await (const chunk of stream) {
     const delta = chunk.choices?.[0]?.delta?.content
