@@ -3,8 +3,9 @@ import { ref, computed, nextTick, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '../src/stores/app'
 import { useThemeStore } from '../src/stores/theme'
+import { useParticleStore } from '../src/stores/particle'
 import { sendMessage, executeCode, ChatMessage } from '../src/api/chat'
-import { LANGUAGES, HELLO_WORLD, MODEL_OPTIONS } from '../src/api/constants'
+import { LANGUAGES, HELLO_WORLD } from '../src/api/constants'
 import api from '../src/api'
 import CodeEditor from '../src/components/CodeEditor.vue'
 
@@ -15,11 +16,20 @@ import ExercisePanel from '../src/components/ExercisePanel.vue'
 import VoiceInput from '../src/components/VoiceInput.vue'
 import QuickCommands from '../src/components/QuickCommands.vue'
 import { useToast } from '../src/stores/toast'
+import { copyText } from '../src/utils/clipboard'
 
 const router = useRouter()
 const store = useAppStore()
 const themeStore = useThemeStore()
+const particleStore = useParticleStore()
 const toast = useToast()
+
+// 粒子背景强度：0 关闭 / 1 微光 / 2 标准 / 3 丰富 / 4 星河
+const PARTICLE_LABELS = ['关闭', '微光', '标准', '丰富', '星河']
+const particleLevel = computed<number>({
+  get: () => particleStore.level,
+  set: (v: number) => particleStore.setLevel(v),
+})
 
 if (!store.isLoggedIn) {
   router.replace('/login')
@@ -31,9 +41,6 @@ const sidebarOpen = ref(true)
 
 // Ref to the chat history panel so we can refresh it when a session is saved
 const chatHistoryRef = ref<InstanceType<typeof ChatHistory> | null>(null)
-
-// Model selector (from store provider)
-const modelOptions = MODEL_OPTIONS[store.provider]?.models || []
 
 // Resizable chat/editor split
 const savedPct = parseFloat(localStorage.getItem('chat_panel_pct') || '50')
@@ -48,10 +55,21 @@ if (window.matchMedia) {
   })
 }
 
+// 右侧代码区是否展开（收起来后对话区占满，右侧留一个竖排"代码"小标签可重新展开）
+const editorOpen = ref(localStorage.getItem('editor_open') !== '0')
+
+function toggleEditor() {
+  editorOpen.value = !editorOpen.value
+  localStorage.setItem('editor_open', editorOpen.value ? '1' : '0')
+  // 展开后等 DOM 渲染完，让 Monaco 重新计算布局
+  if (editorOpen.value) nextTick(() => window.dispatchEvent(new Event('resize')))
+}
+
 // CSS Grid columns for the main area (sidebar | chat | splitter | editor)
 const mainAreaStyle = computed(() => {
   if (isMobile.value) return {}
   const col = sidebarOpen.value ? '260px ' : ''
+  if (!editorOpen.value) return { gridTemplateColumns: `${col}minmax(0, 1fr)` }
   return {
     gridTemplateColumns: `${col}minmax(0, ${chatPct.value}fr) 6px minmax(0, ${100 - chatPct.value}fr)`,
   }
@@ -98,8 +116,10 @@ onUnmounted(() => {
 })
 
 // Message quick actions
-function copyMessage(content: string) {
-  navigator.clipboard?.writeText(content).then(() => toast.success('已复制到剪贴板')).catch(() => toast.error('复制失败'))
+async function copyMessage(content: string) {
+  const ok = await copyText(content || '')
+  if (ok) toast.success('已复制到剪贴板')
+  else toast.error('复制失败，请手动选中文本复制')
 }
 
 async function regenLast() {
@@ -233,8 +253,6 @@ function streamReply(userContent: string) {
   sendMessage(
     {
       messages: messages.value.slice(0, -1),
-      provider: store.provider,
-      model: store.model,
       language: currentLanguage.value,
     },
     (chunk) => { rawContent += chunk },
@@ -370,11 +388,21 @@ function handleOpenInEditor(code: string, lang?: string) {
   }
   codeContent.value = code
   editorTab.value = 'editor'
+  ensureEditorOpen()
 }
 
 function handleSetCode(code: string) {
   codeContent.value = code
   editorTab.value = 'editor'
+  ensureEditorOpen()
+}
+
+/** 打开代码区（若已收起则自动展开），用于"在编辑器中打开"等场景 */
+function ensureEditorOpen() {
+  if (editorOpen.value) return
+  editorOpen.value = true
+  localStorage.setItem('editor_open', '1')
+  nextTick(() => window.dispatchEvent(new Event('resize')))
 }
 
 function handleExerciseInChat(content: string) {
@@ -433,13 +461,23 @@ function exportChat() {
         <span class="logo">编程助学智能体</span>
       </div>
       <div class="topbar-right">
-        <select v-model="store.model" class="model-select" title="选择模型" @change="store.setModel(store.model)">
-          <option v-for="m in modelOptions" :key="m.value" :value="m.value">{{ m.label }}</option>
-        </select>
         <button class="top-btn" @click="exportChat" :disabled="messages.length === 0">导出</button>
         <button class="top-btn" @click="router.push('/dashboard')">仪表盘</button>
         <button class="top-btn" @click="router.push('/snippets')">代码库</button>
         <button class="top-btn" @click="router.push('/learning-path')">学习路径</button>
+        <label class="particle-ctl" :title="`粒子背景：${PARTICLE_LABELS[particleLevel]}（拖动调节，0 为关闭）`">
+          <span class="particle-ico">✨</span>
+          <input
+            class="particle-range"
+            type="range"
+            min="0"
+            max="4"
+            step="1"
+            :value="particleLevel"
+            aria-label="粒子背景强度"
+            @input="particleLevel = Number(($event.target as HTMLInputElement).value)"
+          />
+        </label>
         <button class="top-btn" @click="themeStore.toggle()">
           {{ themeStore.mode === 'dark' ? '☀' : '🌙' }}
         </button>
@@ -527,7 +565,16 @@ function exportChat() {
             :key="i"
             :class="['message', msg.role]"
           >
-            <div v-if="msg.role === 'assistant'" class="avatar">🤖</div>
+            <div v-if="msg.role === 'assistant'" class="avatar avatar-assistant" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="7.5" width="16" height="11.5" rx="3" />
+                <circle cx="12" cy="3.6" r="1.2" />
+                <path d="M12 4.8v2.7" />
+                <circle cx="9" cy="12.6" r=".7" fill="currentColor" stroke="none" />
+                <circle cx="15" cy="12.6" r=".7" fill="currentColor" stroke="none" />
+                <path d="M9.5 16h5" />
+              </svg>
+            </div>
             <div class="msg-content">
               <template v-if="msg.role === 'user'">
                 {{ msg.content }}
@@ -550,7 +597,12 @@ function exportChat() {
                 @click="regenLast"
               >↻</button>
             </div>
-            <div v-if="msg.role === 'user'" class="avatar">🧑‍🎓</div>
+            <div v-if="msg.role === 'user'" class="avatar avatar-user" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="8" r="3.6" />
+                <path d="M5 20.2c.6-3.4 3.4-5.2 7-5.2s6.4 1.8 7 5.2" />
+              </svg>
+            </div>
           </div>
           <div v-if="loading" class="typing-indicator">
             <span></span><span></span><span></span>
@@ -575,10 +627,10 @@ function exportChat() {
         </div>
       </div>
 
-      <div v-if="!isMobile" class="splitter" @mousedown="onSplitterDown"></div>
+      <div v-if="!isMobile && editorOpen" class="splitter" @mousedown="onSplitterDown"></div>
 
       <!-- Editor/Exercise Panel -->
-      <div class="editor-panel">
+      <div v-if="editorOpen" class="editor-panel">
         <div class="editor-tabs">
           <button
             :class="['et-tab', { active: editorTab === 'editor' }]"
@@ -588,6 +640,7 @@ function exportChat() {
             :class="['et-tab', { active: editorTab === 'exercise' }]"
             @click="editorTab = 'exercise'"
           >练习</button>
+          <button class="et-collapse" title="收起代码区" @click="toggleEditor">收起 ⟩</button>
         </div>
 
         <div v-show="editorTab === 'editor'" style="display:flex;flex-direction:column;flex:1;min-height:0">
@@ -636,6 +689,11 @@ function exportChat() {
           />
         </div>
       </div>
+
+      <!-- 代码区收起后的展开标签 -->
+      <button v-if="!editorOpen" class="editor-reopen" title="展开代码区" @click="toggleEditor">
+        代码
+      </button>
     </div>
   </div>
 </template>
@@ -695,6 +753,50 @@ function exportChat() {
 }
 .top-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
 .top-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* 粒子背景强度滑块 */
+.particle-ctl {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border: 1px solid var(--border-secondary);
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+}
+.particle-ctl:hover { border-color: var(--accent); }
+.particle-ico { font-size: 12px; line-height: 1; }
+.particle-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 68px;
+  height: 3px;
+  margin: 0;
+  border-radius: 2px;
+  background: var(--bg-tertiary);
+  outline: none;
+  cursor: pointer;
+}
+.particle-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 11px;
+  height: 11px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.particle-range::-webkit-slider-thumb:hover { transform: scale(1.2); }
+.particle-range::-moz-range-thumb {
+  width: 11px;
+  height: 11px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+}
 
 /* Main Layout */
 .main-area {
@@ -818,10 +920,28 @@ function exportChat() {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-primary);
   flex-shrink: 0;
+  overflow: hidden;
+}
+.avatar svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+/* AI 助教头像：品牌渐变底 + 白色机器人图标 */
+.avatar-assistant {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  box-shadow: 0 2px 8px rgba(108, 140, 255, 0.35);
+}
+/* 学生头像：低调底色 + 主题色人形图标 */
+.avatar-user {
+  color: var(--accent-3);
+  background: var(--bg-tertiary);
+  border-color: var(--border-secondary);
 }
 .message.user .msg-content {
   background: linear-gradient(135deg, var(--accent), #74c7ec);
@@ -852,6 +972,10 @@ function exportChat() {
   flex-shrink: 0;
 }
 .message:hover .msg-actions { opacity: 1; }
+@media (hover: none) {
+  /* 触屏设备没有 hover，操作按钮常驻显示，否则无法点击复制/重新生成 */
+  .msg-actions { opacity: 1; }
+}
 .msg-action-btn {
   padding: 2px 7px;
   border: none;
@@ -959,6 +1083,46 @@ function exportChat() {
   color: var(--accent);
   border-bottom: 2px solid var(--accent);
 }
+.et-collapse {
+  flex: 0 0 auto;
+  padding: 0 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s, background 0.2s;
+}
+.et-collapse:hover {
+  color: var(--accent);
+  background: var(--bg-tertiary);
+}
+
+/* 代码区收起后的右侧竖排展开标签 */
+.editor-reopen {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  writing-mode: vertical-rl;
+  padding: 16px 6px;
+  border: 1px solid var(--border-secondary);
+  border-right: none;
+  border-radius: 8px 0 0 8px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 12px;
+  letter-spacing: 3px;
+  cursor: pointer;
+  z-index: 20;
+  box-shadow: var(--shadow-sm);
+  transition: background 0.2s, color 0.2s;
+}
+.editor-reopen:hover {
+  background: var(--accent);
+  color: var(--bg-primary);
+}
 .editor-header {
   display: flex;
   align-items: center;
@@ -1037,18 +1201,6 @@ function exportChat() {
 }
 .error-output pre { color: #f38ba8; }
 
-.model-select {
-  padding: 5px 30px 5px 10px;
-  font-size: 12px;
-  border-radius: 6px;
-  border: 1px solid var(--border-secondary);
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  cursor: pointer;
-  outline: none;
-}
-.model-select:hover { border-color: var(--accent); }
-
 /* Responsive: Tablet */
 @media (max-width: 1024px) {
   .sidebar { width: 220px; }
@@ -1101,11 +1253,12 @@ function exportChat() {
     font-size: 11px;
     padding: 3px 8px;
   }
-  .model-select {
-    font-size: 11px;
-    padding: 3px 8px;
-    min-width: 0;
-    max-width: 110px;
+  .particle-ctl {
+    padding: 2px 6px;
+    gap: 3px;
+  }
+  .particle-range {
+    width: 52px;
   }
   .user-info {
     display: none;

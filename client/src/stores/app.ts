@@ -5,8 +5,6 @@ export const useAppStore = defineStore('app', () => {
   const savedUser = localStorage.getItem('user')
   const user = ref<{ id: string; username: string; email?: string | null } | null>(savedUser ? JSON.parse(savedUser) : null)
   const token = ref(localStorage.getItem('token') || '')
-  const provider = ref(localStorage.getItem('provider') || 'deepseek')
-  const model = ref(localStorage.getItem('model') || 'deepseek-chat')
 
   const isLoggedIn = computed(() => !!token.value && !!user.value)
 
@@ -24,15 +22,5 @@ export const useAppStore = defineStore('app', () => {
     localStorage.removeItem('user')
   }
 
-  function setProvider(p: string) {
-    provider.value = p
-    localStorage.setItem('provider', p)
-  }
-
-  function setModel(m: string) {
-    model.value = m
-    localStorage.setItem('model', m)
-  }
-
-  return { user, token, provider, model, isLoggedIn, setAuth, logout, setProvider, setModel }
+  return { user, token, isLoggedIn, setAuth, logout }
 })

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js/lib/core'
+import { copyText } from '../utils/clipboard'
 import python from 'highlight.js/lib/languages/python'
 import javascript from 'highlight.js/lib/languages/javascript'
 import java from 'highlight.js/lib/languages/java'
@@ -18,7 +19,6 @@ hljs.registerLanguage('go', go)
 hljs.registerLanguage('bash', bash)
 
 const emit = defineEmits<{
-  'copy-code': [code: string]
   'open-in-editor': [code: string]
   'save-snippet': [code: string, language: string]
 }>()
@@ -50,18 +50,13 @@ function rendered() {
 function handleClick(e: Event) {
   const btn = (e.target as HTMLElement).closest('.code-btn') as HTMLElement | null
   if (!btn) return
-  const code = btn.dataset.code?.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"') || ''
+  // 浏览器解析 HTML 属性时已还原实体，dataset 取到的就是原始代码
+  const code = btn.dataset.code || ''
   if (btn.classList.contains('copy-btn')) {
-    if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(code).catch(() => {})
-    } else {
-      const ta = document.createElement('textarea')
-      ta.value = code; ta.style.position = 'fixed'; ta.style.opacity = '0'
-      document.body.appendChild(ta); ta.select()
-      document.execCommand('copy'); document.body.removeChild(ta)
-    }
-    btn.textContent = '已复制'
-    setTimeout(() => { btn.textContent = '复制' }, 1500)
+    void copyText(code).then((ok) => {
+      btn.textContent = ok ? '已复制' : '复制失败'
+      setTimeout(() => { btn.textContent = '复制' }, 1500)
+    })
   } else if (btn.classList.contains('edit-btn')) {
     emit('open-in-editor', code)
   } else if (btn.classList.contains('save-btn')) {

@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAppStore } from '../src/stores/app'
 import api from '../src/api'
 import { useToast } from '../src/stores/toast'
+import { copyText } from '../src/utils/clipboard'
 
 const router = useRouter()
 const store = useAppStore()
@@ -43,10 +44,10 @@ async function deleteSnippet(id: string) {
   }
 }
 
-function copyCode(code: string) {
-  navigator.clipboard.writeText(code)
-    .then(() => toast.success('已复制'))
-    .catch(() => toast.error('复制失败'))
+async function copyCode(code: string) {
+  const ok = await copyText(code || '')
+  if (ok) toast.success('已复制')
+  else toast.error('复制失败，请手动选中文本复制')
 }
 </script>
 

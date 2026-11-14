@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useThemeStore } from '../stores/theme'
 
 const props = defineProps<{
@@ -67,6 +67,13 @@ watch(() => themeStore.mode, () => {
   if (editor && monacoModule) {
     monacoModule.editor.setTheme(getMonacoTheme())
   }
+})
+
+// 代码区收起（v-if 卸载）时销毁编辑器实例，避免反复展开/收起造成内存泄漏
+onUnmounted(() => {
+  editor?.dispose()
+  editor = null
+  monacoModule = null
 })
 </script>
 

@@ -1,13 +1,3 @@
-export const MODEL_OPTIONS: Record<string, { label: string; models: { value: string; label: string }[] }> = {
-  deepseek: {
-    label: 'DeepSeek',
-    models: [
-      { value: 'deepseek-chat', label: 'DeepSeek-V3' },
-      { value: 'deepseek-reasoner', label: 'DeepSeek-R1' },
-    ],
-  },
-}
-
 export const LANGUAGES = [
   { value: 'python', label: 'Python' },
   { value: 'javascript', label: 'JavaScript' },

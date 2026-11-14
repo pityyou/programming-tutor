@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@monaco-editor/loader": "^1.4.0",
     "axios": "^1.7.9",
     "highlight.js": "^11.11.1",
     "markdown-it": "^14.2.0",
