@@ -49,7 +49,7 @@ chatRouter.post('/', async (req, res) => {
     })
 
     const streamFn = getAdapter(provider)
-    const effectiveModel = model || (provider === 'deepseek' ? 'deepseek-chat' : undefined)
+    const effectiveModel = model || (provider === 'deepseek' ? (process.env.DEEPSEEK_MODEL || 'deepseek-chat') : undefined)
 
     for await (const chunk of streamFn(messages, effectiveModel, upstream.signal)) {
       const data = `data: ${JSON.stringify({ content: chunk })}\n\n`

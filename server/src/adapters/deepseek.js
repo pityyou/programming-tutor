@@ -2,6 +2,8 @@ import OpenAI from 'openai'
 
 const API_KEY = process.env.DEEPSEEK_API_KEY || ''
 const BASE_URL = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/v1'
+// 默认模型可通过环境变量覆盖（例如切换火山方舟 Ark 模型/接入点）
+const DEFAULT_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-chat'
 
 let client
 function getClient() {
@@ -11,7 +13,7 @@ function getClient() {
   return client
 }
 
-export async function* streamDeepSeek(messages, model = 'deepseek-chat', signal) {
+export async function* streamDeepSeek(messages, model = DEFAULT_MODEL, signal) {
   const stream = await getClient().chat.completions.create(
     {
       model,
