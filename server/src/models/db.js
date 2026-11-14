@@ -41,6 +41,12 @@ export async function initDb() {
   } catch { /* column already exists */ }
   db.run('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)')
 
+  // Migration: mark guest (visitor) accounts. Guests are created by the
+  // "游客登录" button without email/password; their data is purged after a TTL.
+  try {
+    db.run('ALTER TABLE users ADD COLUMN is_guest INTEGER DEFAULT 0')
+  } catch { /* column already exists */ }
+
   // Case-insensitive unique index for usernames ('Bob' and 'bob' are the same account)
   try {
     db.run('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username_ci ON users(username COLLATE NOCASE)')

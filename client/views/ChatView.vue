@@ -373,6 +373,11 @@ function newChat() {
   savedCount.value = 0
 }
 
+function handleLogout() {
+  store.logout()
+  router.push('/login')
+}
+
 // 删除会话后：只有删掉的是当前会话才清空对话区，否则保留正在看的内容
 function handleSessionDeleted(id: string) {
   if (id === currentSessionId.value) newChat()
@@ -481,7 +486,10 @@ function exportChat() {
         <button class="top-btn" @click="themeStore.toggle()">
           {{ themeStore.mode === 'dark' ? '☀' : '🌙' }}
         </button>
-        <span class="user-info">{{ store.user?.username }}</span>
+        <span class="user-info" :title="store.user?.is_guest ? '游客账号：数据保留 7 天后自动清理，注册可长期保存' : ''">
+          {{ store.user?.is_guest ? '游客' : store.user?.username }}
+        </span>
+        <button class="top-btn" @click="handleLogout" title="退出登录">退出</button>
       </div>
     </header>
 

@@ -57,7 +57,7 @@ async function copyCode(code: string) {
       <span class="logo" @click="router.push('/chat')" style="cursor:pointer">编程助学智能体</span>
       <div class="topbar-right">
         <button class="back-btn" @click="router.push('/chat')">← 返回</button>
-        <span class="user-info">{{ store.user?.username }}</span>
+        <span class="user-info">{{ store.user?.is_guest ? '游客' : store.user?.username }}</span>
       </div>
     </header>
 

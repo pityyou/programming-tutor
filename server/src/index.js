@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
-import { authRouter } from './routes/auth.js'
+import { authRouter, purgeExpiredGuests } from './routes/auth.js'
 import { chatRouter } from './routes/chat.js'
 import { executeRouter } from './routes/execute.js'
 import { statsRouter } from './routes/stats.js'
@@ -39,6 +39,11 @@ app.get('/api/health', (_req, res) => {
 
 // Initialize database + mailer and start server
 Promise.all([initDb(), initMailer()]).then(() => {
+  // 启动时清理一次过期游客账号，之后每小时检查一次
+  purgeExpiredGuests()
+  const guestTimer = setInterval(purgeExpiredGuests, 60 * 60 * 1000)
+  guestTimer.unref?.()
+
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`)
   })

@@ -3,12 +3,12 @@ import { ref, computed } from 'vue'
 
 export const useAppStore = defineStore('app', () => {
   const savedUser = localStorage.getItem('user')
-  const user = ref<{ id: string; username: string; email?: string | null } | null>(savedUser ? JSON.parse(savedUser) : null)
+  const user = ref<{ id: string; username: string; email?: string | null; is_guest?: boolean } | null>(savedUser ? JSON.parse(savedUser) : null)
   const token = ref(localStorage.getItem('token') || '')
 
   const isLoggedIn = computed(() => !!token.value && !!user.value)
 
-  function setAuth(u: { id: string; username: string; email?: string | null }, t: string) {
+  function setAuth(u: { id: string; username: string; email?: string | null; is_guest?: boolean }, t: string) {
     user.value = u
     token.value = t
     localStorage.setItem('token', t)

@@ -93,6 +93,7 @@ async function generateReport() {
 }
 
 function goChat() { router.push('/chat') }
+function goRegister() { router.push('/login') }
 
 // 老账号补绑邮箱（用于找回密码）
 const bindEmailInput = ref('')
@@ -172,7 +173,7 @@ const computedBadges = computed(() => [
       <span class="logo" @click="goChat" style="cursor:pointer">编程助学智能体</span>
       <div class="topbar-right">
         <button class="back-btn" @click="goChat">← 返回</button>
-        <span class="user-info">{{ store.user?.username }}</span>
+        <span class="user-info">{{ store.user?.is_guest ? '游客' : store.user?.username }}</span>
       </div>
     </header>
 
@@ -255,22 +256,28 @@ const computedBadges = computed(() => [
           <div class="account-row">
             <span class="account-label">邮箱</span>
             <span class="account-value" :class="{ unbound: !store.user?.email }">
-              {{ store.user?.email || '未绑定' }}
+              {{ store.user?.email || (store.user?.is_guest ? '游客账号' : '未绑定') }}
             </span>
           </div>
-          <div v-if="!store.user?.email" class="bind-row">
-            <input
-              v-model="bindEmailInput"
-              type="email"
-              placeholder="绑定邮箱，用于找回密码"
-              class="bind-input"
-              @keydown.enter.prevent="submitBindEmail"
-            />
-            <button class="btn-report" @click="submitBindEmail" :disabled="bindingEmail">
-              {{ bindingEmail ? '绑定中...' : '绑定邮箱' }}
-            </button>
-          </div>
-          <p class="account-tip">忘记密码时可通过绑定的邮箱收取验证码重置</p>
+          <template v-if="store.user?.is_guest">
+            <p class="account-tip">当前为游客账号：数据保留 7 天后自动清理。注册正式账号后可绑定邮箱、长期保存学习数据。</p>
+            <button class="btn-report" @click="goRegister">去注册正式账号</button>
+          </template>
+          <template v-else>
+            <div v-if="!store.user?.email" class="bind-row">
+              <input
+                v-model="bindEmailInput"
+                type="email"
+                placeholder="绑定邮箱，用于找回密码"
+                class="bind-input"
+                @keydown.enter.prevent="submitBindEmail"
+              />
+              <button class="btn-report" @click="submitBindEmail" :disabled="bindingEmail">
+                {{ bindingEmail ? '绑定中...' : '绑定邮箱' }}
+              </button>
+            </div>
+            <p class="account-tip">忘记密码时可通过绑定的邮箱收取验证码重置</p>
+          </template>
         </div>
       </div>
 

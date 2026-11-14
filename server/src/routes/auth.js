@@ -2,7 +2,7 @@ import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import { v4 as uuid } from 'uuid'
 import crypto from 'crypto'
-import { dbGet, dbExec } from '../models/db.js'
+import { dbGet, dbExec, dbAll } from '../models/db.js'
 import { signToken, authMiddleware } from '../middleware/auth.js'
 import { sendPasswordResetCode, sendVerificationCode, mailerDevMode } from '../services/mailer.js'
 
@@ -10,6 +10,7 @@ export const authRouter = Router()
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const RESET_TTL_MS = 15 * 60 * 1000 // 验证码 15 分钟有效
+const GUEST_TTL_DAYS = 7 // 游客账号及数据保留天数
 
 function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase()
@@ -17,6 +18,27 @@ function normalizeEmail(email) {
 
 function validateUsername(username) {
   return typeof username === 'string' && username.trim().length >= 3 && username.trim().length <= 20
+}
+
+// 清理超过保留期的游客账号及其数据（会话/消息/代码片段/练习记录）
+export function purgeExpiredGuests() {
+  try {
+    const expired = dbAll(
+      "SELECT id FROM users WHERE is_guest = 1 AND created_at < datetime('now', ?)",
+      [`-${GUEST_TTL_DAYS} days`]
+    )
+    for (const user of expired) {
+      dbExec('DELETE FROM messages WHERE session_id IN (SELECT id FROM sessions WHERE user_id = ?)', [user.id])
+      dbExec('DELETE FROM sessions WHERE user_id = ?', [user.id])
+      dbExec('DELETE FROM snippets WHERE user_id = ?', [user.id])
+      dbExec('DELETE FROM practice_records WHERE user_id = ?', [user.id])
+      dbExec('DELETE FROM password_resets WHERE user_id = ?', [user.id])
+      dbExec('DELETE FROM users WHERE id = ?', [user.id])
+    }
+    if (expired.length) console.log(`[auth] 已清理 ${expired.length} 个过期游客账号`)
+  } catch (err) {
+    console.error('Purge guests error:', err)
+  }
 }
 
 // 发送注册邮箱验证码（发送前预检用户名/邮箱唯一性，避免向已注册邮箱发码）
@@ -114,7 +136,7 @@ authRouter.post('/register', (req, res) => {
     dbExec('DELETE FROM email_verifications WHERE email = ?', [normalizedEmail])
 
     const token = signToken(id)
-    res.json({ token, user: { id, username: username.trim(), email: normalizedEmail } })
+    res.json({ token, user: { id, username: username.trim(), email: normalizedEmail, is_guest: false } })
   } catch (err) {
     console.error('Register error:', err)
     res.status(500).json({ error: '注册失败' })
@@ -128,16 +150,42 @@ authRouter.post('/login', (req, res) => {
       return res.status(400).json({ error: '用户名和密码不能为空' })
     }
 
-    const user = dbGet('SELECT id, username, password_hash, email FROM users WHERE username = ? COLLATE NOCASE', [username.trim()])
+    const user = dbGet('SELECT id, username, password_hash, email, is_guest FROM users WHERE username = ? COLLATE NOCASE', [username.trim()])
     if (!user || !bcrypt.compareSync(password, user.password_hash)) {
       return res.status(401).json({ error: '用户名或密码错误' })
     }
 
     const token = signToken(user.id)
-    res.json({ token, user: { id: user.id, username: user.username, email: user.email || null } })
+    res.json({ token, user: { id: user.id, username: user.username, email: user.email || null, is_guest: !!user.is_guest } })
   } catch (err) {
     console.error('Login error:', err)
     res.status(500).json({ error: '登录失败' })
+  }
+})
+
+// 游客登录：免注册一键进入，数据保留 7 天后自动清理
+// 游客账号没有邮箱/密码，只能凭返回的 token 使用；想长期保存请注册正式账号
+authRouter.post('/guest', (req, res) => {
+  try {
+    let username = ''
+    for (let i = 0; i < 5; i++) {
+      const candidate = 'guest_' + crypto.randomBytes(4).toString('hex')
+      if (!dbGet('SELECT id FROM users WHERE username = ? COLLATE NOCASE', [candidate])) {
+        username = candidate
+        break
+      }
+    }
+    if (!username) return res.status(500).json({ error: '游客登录失败，请稍后再试' })
+
+    const id = uuid()
+    // 随机密码哈希：游客无法用密码登录，仅凭 token 使用
+    const passwordHash = bcrypt.hashSync(crypto.randomBytes(16).toString('hex'), 10)
+    dbExec('INSERT INTO users (id, username, password_hash, email, is_guest) VALUES (?, ?, ?, NULL, 1)', [id, username, passwordHash])
+    const token = signToken(id)
+    res.json({ token, user: { id, username, email: null, is_guest: true } })
+  } catch (err) {
+    console.error('Guest login error:', err)
+    res.status(500).json({ error: '游客登录失败，请稍后再试' })
   }
 })
 
@@ -223,6 +271,10 @@ authRouter.post('/reset-password', (req, res) => {
 // 老账号补绑邮箱（需登录）
 authRouter.post('/bind-email', authMiddleware, (req, res) => {
   try {
+    const current = dbGet('SELECT is_guest FROM users WHERE id = ?', [req.userId])
+    if (current?.is_guest) {
+      return res.status(403).json({ error: '游客账号不支持绑定邮箱，请注册正式账号' })
+    }
     const normalizedEmail = normalizeEmail(req.body?.email)
     if (!EMAIL_RE.test(normalizedEmail)) {
       return res.status(400).json({ error: '请输入正确的邮箱地址' })
@@ -243,9 +295,9 @@ authRouter.post('/bind-email', authMiddleware, (req, res) => {
 })
 
 authRouter.get('/profile', authMiddleware, (req, res) => {
-  const user = dbGet('SELECT id, username, email FROM users WHERE id = ?', [req.userId])
+  const user = dbGet('SELECT id, username, email, is_guest FROM users WHERE id = ?', [req.userId])
   if (!user) {
     return res.status(404).json({ error: '用户不存在' })
   }
-  res.json({ user })
+  res.json({ user: { ...user, is_guest: !!user.is_guest } })
 })

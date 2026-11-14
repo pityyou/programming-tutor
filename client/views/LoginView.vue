@@ -18,6 +18,24 @@ const emailCode = ref('')
 const error = ref('')
 const loading = ref(false)
 
+// 游客登录
+const guestLoading = ref(false)
+
+async function loginAsGuest() {
+  if (guestLoading.value) return
+  guestLoading.value = true
+  error.value = ''
+  try {
+    const { data } = await authApi.guestLogin()
+    store.setAuth(data.user, data.token)
+    router.push('/chat')
+  } catch (e: any) {
+    error.value = e.response?.data?.error || e.message || '游客登录失败'
+  } finally {
+    guestLoading.value = false
+  }
+}
+
 // 注册验证码
 const codeSending = ref(false)
 const codeCountdown = ref(0)
@@ -200,6 +218,10 @@ async function submitReset() {
         <button type="submit" :disabled="loading" class="btn-primary">
           {{ loading ? '处理中...' : '登录' }}
         </button>
+        <button type="button" class="btn-guest" :disabled="guestLoading || loading" @click="loginAsGuest">
+          {{ guestLoading ? '进入中...' : '👤 游客登录（免注册体验）' }}
+        </button>
+        <p class="guest-hint">游客数据保存在服务器，7 天后自动清理；注册正式账号可长期保存。</p>
         <div class="form-links">
           <a href="#" @click.prevent="switchView('forgot')">忘记密码？</a>
         </div>
@@ -390,6 +412,35 @@ h1 {
 .btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+.btn-guest {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-secondary);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.btn-guest:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--bg-secondary);
+}
+.btn-guest:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.guest-hint {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 8px;
+  opacity: 0.75;
 }
 .form-links {
   text-align: right;

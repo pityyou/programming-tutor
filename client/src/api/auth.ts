@@ -4,10 +4,17 @@ export interface UserInfo {
   id: string
   username: string
   email?: string | null
+  /** 游客账号：免注册体验，数据 7 天后自动清理 */
+  is_guest?: boolean
 }
 
 export function login(username: string, password: string) {
   return api.post<{ token: string; user: UserInfo }>('/auth/login', { username, password })
+}
+
+/** 游客登录：一键创建临时账号（无需邮箱/密码） */
+export function guestLogin() {
+  return api.post<{ token: string; user: UserInfo }>('/auth/guest', {})
 }
 
 export interface SendCodeResult {
