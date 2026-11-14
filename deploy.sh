@@ -112,10 +112,10 @@ fi
 
 # ------------------------------------------------------------
 step "2/7 准备代码共享目录"
-mkdir -p "$APP_DIR/temp"
+mkdir -p "$APP_DIR/server/temp"
 # 容器内的 sandbox 用户需要写入编译产物（.class/.exe 等）
-chmod 777 "$APP_DIR/temp"
-ok "temp 目录就绪（777，容器内可写）"
+chmod 777 "$APP_DIR/server/temp"
+ok "temp 目录就绪（server/temp，777，容器内可写）"
 
 # ------------------------------------------------------------
 step "3/7 构建并启动代码沙箱（首次约 3-8 分钟，需下载 Go/Node/JDK）"
@@ -200,6 +200,14 @@ npm install --no-audit --no-fund
 npm run build
 ok "前端构建完成 → client/dist"
 
+# Nginx（www-data）无法穿越 /home 下 750 权限的目录，静态文件统一放到 /var/www
+$SUDO mkdir -p /var/www/tutor
+$SUDO rm -rf /var/www/tutor/*
+$SUDO cp -r "$CLIENT_DIR/dist/." /var/www/tutor/
+$SUDO chown -R www-data:www-data /var/www/tutor
+$SUDO chmod -R 755 /var/www/tutor
+ok "前端静态文件已复制到 /var/www/tutor"
+
 cd "$SERVER_DIR"
 if [ ! -f .env ]; then
   cp .env.example .env
@@ -236,7 +244,7 @@ server {
     listen 80;
     server_name _;
 
-    root ${CLIENT_DIR}/dist;
+    root /var/www/tutor;
     index index.html;
 
     location /api/ {

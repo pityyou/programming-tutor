@@ -14,7 +14,7 @@ Ubuntu 服务器
 │                          ▼
 └── Docker 容器 code-sandbox ── 学生代码在这里执行
      （镜像内含：Python3 / Node20 / JDK17 / Go1.23 / gcc / g++）
-     挂载 ./temp:/code   ·   断网   ·   512MB / 1 CPU
+     挂载 ./server/temp:/code   ·   断网   ·   512MB / 1 CPU
 ```
 
 **为什么把代码执行放在独立容器里？**
@@ -186,7 +186,7 @@ pm2 restart tutor-server
 | 页面显示但接口 502 | 后端没起来：`pm2 logs tutor-server` |
 | 手机/局域网访问打不开 | 云防火墙放行 80；本地开发时用 `npm run dev` 并注意 `--host` |
 | 忘记密码收不到邮件 | `server/.env` 的 SMTP 未配置或授权码错误；未配置 SMTP 时验证码会打印在 `pm2 logs` 里（开发模式） |
-| 磁盘被 temp 占满 | 每次执行会自动清理；异常中断可能残留 `temp/`，可手动 `rm -f temp/*` |
+| 磁盘被 temp 占满 | 每次执行会自动清理；异常中断可能残留 `server/temp/`，可手动 `rm -f server/temp/*` |
 
 ## 十、安全说明
 

@@ -21,10 +21,10 @@ services:
     image: programming-tutor-sandbox:1.0
     container_name: code-sandbox
 
-    # 宿主 ./temp 挂载到容器 /code：
-    # 后端把学生代码写进 temp，容器内执行，产物也写回同一目录
+    # 宿主 ./server/temp 挂载到容器 /code：
+    # 后端把学生代码写进 server/temp，容器内执行，产物也写回同一目录
     volumes:
-      - ./temp:/code
+      - ./server/temp:/code
     working_dir: /code
 
     # 资源限制：防止学生代码吃光服务器

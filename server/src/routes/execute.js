@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { execSync } from 'child_process'
-import { writeFileSync, unlinkSync, existsSync, mkdirSync } from 'fs'
+import { writeFileSync, unlinkSync, existsSync, mkdirSync, readdirSync, statSync } from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { v4 as uuid } from 'uuid'
@@ -11,6 +11,39 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const TEMP_DIR = path.join(__dirname, '..', '..', 'temp')
 
 const MAX_CODE_LEN = 50000
+// 临时文件超过这个时间视为残留（执行正常会在 finally 中删除）
+const TEMP_MAX_AGE_MS = 10 * 60 * 1000
+
+// 启动时 + 每小时清理一遍过期临时文件。
+// 个别文件（Windows 上刚退出的 .exe 等）可能删除失败而残留，这里做兜底。
+function cleanupStaleTemp() {
+  try {
+    if (!existsSync(TEMP_DIR)) return
+    const now = Date.now()
+    let removed = 0
+    for (const name of readdirSync(TEMP_DIR)) {
+      const fp = path.join(TEMP_DIR, name)
+      try {
+        if (now - statSync(fp).mtimeMs > TEMP_MAX_AGE_MS) {
+          unlinkSync(fp)
+          removed++
+        }
+      } catch { /* 单个文件失败不影响其他 */ }
+    }
+    if (removed > 0) console.log(`[execute] 已清理 ${removed} 个过期的临时文件`)
+  } catch { /* 目录不可用时忽略 */ }
+}
+cleanupStaleTemp()
+setInterval(cleanupStaleTemp, 60 * 60 * 1000).unref?.()
+
+// 删除失败时延迟重试：Windows 上编译产物（.exe）刚退出时可能仍被占用
+function safeUnlink(fp, retries = 3) {
+  try {
+    unlinkSync(fp)
+  } catch {
+    if (retries > 0) setTimeout(() => safeUnlink(fp, retries - 1), 300)
+  }
+}
 
 let dockerAvailable = false
 try {
@@ -168,8 +201,10 @@ function runCode(language, code, stdin = '') {
       msg = err.message || '执行出错'
     }
 
-    // 超时：容器内 timeout 返回 124，或宿主机 execSync 超时
-    const isTimeout = err.status === 124 || err.code === 'ETIMEDOUT' || /timed?\s?out/i.test(err.message || '')
+    // 超时：容器内 timeout 返回 124，或宿主机 execSync 超时（ETIMEDOUT）。
+    // 注意不要用 /timeout/i 匹配 err.message —— 命令串本身含有 `timeout 14`，
+    // 会把文件不存在等普通错误误判成超时。
+    const isTimeout = err.status === 124 || err.code === 'ETIMEDOUT'
     if (isTimeout) {
       msg = `执行超时（超过 14 秒）。请检查程序是否有死循环，或是否在等待输入。\n${msg}`
     } else if (err.code === 'ENOBUFS') {
@@ -181,20 +216,18 @@ function runCode(language, code, stdin = '') {
 
     return { output: '', error: msg.slice(0, 2000) }
   } finally {
-    // Cleanup
-    try { unlinkSync(filePath) } catch { /* */ }
-    if (actualFilePath && actualFilePath !== filePath) {
-      try { unlinkSync(actualFilePath) } catch { /* */ }
-    }
+    // 清理生成的源码与编译产物（失败会延迟重试）
+    safeUnlink(filePath)
+    if (actualFilePath && actualFilePath !== filePath) safeUnlink(actualFilePath)
     // Clean .class and .exe files
     const exts = ['.class', '.exe']
     for (const ce of exts) {
       for (const fp of [filePath, actualFilePath]) {
-        try { unlinkSync(fp.replace(new RegExp(`\\${ext}$`), ce)) } catch { /* */ }
+        if (fp) safeUnlink(fp.replace(new RegExp(`\\${ext}$`), ce))
       }
     }
     if (classInfo) {
-      try { unlinkSync(path.join(path.dirname(filePath), classInfo.className + '.class')) } catch { /* */ }
+      safeUnlink(path.join(path.dirname(filePath), classInfo.className + '.class'))
     }
   }
 }

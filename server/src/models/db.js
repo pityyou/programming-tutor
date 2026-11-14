@@ -128,6 +128,14 @@ export async function initDb() {
     db.run('ALTER TABLE messages ADD COLUMN seq INTEGER DEFAULT 0')
   } catch { /* column already exists */ }
 
+  // 查询索引：各表的过滤/排序字段在数据量增长后显著影响性能
+  db.run('CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)')
+  db.run('CREATE INDEX IF NOT EXISTS idx_messages_session_seq ON messages(session_id, seq)')
+  db.run('CREATE INDEX IF NOT EXISTS idx_snippets_user ON snippets(user_id)')
+  db.run('CREATE INDEX IF NOT EXISTS idx_practice_user ON practice_records(user_id)')
+  db.run('CREATE INDEX IF NOT EXISTS idx_resets_user ON password_resets(user_id)')
+  db.run('CREATE INDEX IF NOT EXISTS idx_verifications_email ON email_verifications(email)')
+
   persist()
   console.log('Database initialized')
 }
