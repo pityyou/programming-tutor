@@ -164,4 +164,19 @@ h1 { font-size: 22px; margin-bottom: 16px; }
 .topic-tag:hover {
   background: var(--accent); color: var(--accent-text);
 }
+/* Responsive: Mobile */
+@media (max-width: 768px) {
+  .topbar { padding: 8px 12px; gap: 8px; flex-wrap: wrap; }
+  .logo { font-size: 15px; }
+  .topbar-right { gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .lp-content { padding: 16px 12px; }
+  h1 { font-size: 19px; }
+  .lang-tabs { gap: 6px; margin-bottom: 16px; }
+  .lang-tab { padding: 5px 10px; font-size: 12px; }
+  .stage-card { gap: 10px; }
+  .stage-num { width: 30px; height: 30px; font-size: 13px; }
+  .stage-body { padding: 12px; }
+  .stage-title { font-size: 15px; }
+  .stage-desc { font-size: 12px; }
+}
 </style>

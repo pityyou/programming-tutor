@@ -482,4 +482,23 @@ h2 { font-size: 18px; margin-bottom: 12px; color: var(--accent); }
   background: var(--bg-secondary); padding: 20px; border-radius: 12px;
   line-height: 1.8; margin-bottom: 16px; font-size: 14px;
 }
+/* Responsive: Mobile */
+@media (max-width: 768px) {
+  .topbar { padding: 8px 12px; gap: 8px; flex-wrap: wrap; }
+  .logo { font-size: 15px; }
+  .topbar-right { gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .dash-content { padding: 20px 12px; }
+  .stat-cards { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+  .stat-card { padding: 14px 10px; }
+  .stat-value { font-size: 22px; }
+  .actions { flex-wrap: wrap; gap: 8px; }
+  .btn-primary, .btn-secondary { flex: 1 1 auto; padding: 10px 14px; font-size: 13px; }
+  .badges { grid-template-columns: repeat(2, 1fr); }
+  .practice-item { flex-wrap: wrap; }
+  .practice-title { max-width: 100%; }
+  .practice-list { max-width: 100%; }
+  .bind-row { flex-wrap: wrap; }
+  .bind-input { flex: 1 1 100%; min-width: 0; }
+  .report-card { padding: 14px; font-size: 13px; }
+}
 </style>

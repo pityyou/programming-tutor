@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { useAppStore } from '../src/stores/app'
 
@@ -120,5 +120,13 @@ h1 {
 .btn-start:hover {
   transform: translateY(-2px) scale(1.02);
   box-shadow: 0 8px 30px rgba(137,180,250,0.3);
+}
+/* Responsive: Mobile */
+@media (max-width: 768px) {
+  .home-page { padding: 28px 16px; }
+  h1 { font-size: 27px; }
+  .desc { font-size: 14px; margin-bottom: 32px; }
+  .features { gap: 12px; margin-bottom: 32px; width: 100%; }
+  .feature-card { width: 100%; max-width: 360px; padding: 20px 18px; }
 }
 </style>

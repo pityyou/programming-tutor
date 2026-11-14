@@ -4,6 +4,8 @@ const API_KEY = process.env.DEEPSEEK_API_KEY || ''
 const BASE_URL = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/v1'
 // 默认模型可通过环境变量覆盖（例如切换火山方舟 Ark 模型/接入点）
 const DEFAULT_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-chat'
+// 火山方舟等支持思考开关的模型可设置 DEEPSEEK_THINKING=disabled 关闭思考（显著降低首字延迟）
+const THINKING = (process.env.DEEPSEEK_THINKING || '').trim()
 
 let client
 function getClient() {
@@ -19,6 +21,7 @@ export async function* streamDeepSeek(messages, model = DEFAULT_MODEL, signal) {
       model,
       messages: [{ role: 'system', content: getSystemPrompt() }, ...messages],
       stream: true,
+      ...(THINKING ? { thinking: { type: THINKING } } : {}),
     },
     // 客户端断开时中止上游请求，避免继续消耗 token
     signal ? { signal } : undefined

@@ -56,7 +56,9 @@ if (window.matchMedia) {
 }
 
 // 右侧代码区是否展开（收起来后对话区占满，右侧留一个竖排"代码"小标签可重新展开）
-const editorOpen = ref(localStorage.getItem('editor_open') !== '0')
+// 手机端首次进入默认收起（把屏幕让给对话），用户手动展开后记住选择
+const savedEditorOpen = localStorage.getItem('editor_open')
+const editorOpen = ref(savedEditorOpen === '1' || (savedEditorOpen !== '0' && !isMobile.value))
 
 function toggleEditor() {
   editorOpen.value = !editorOpen.value
@@ -648,7 +650,9 @@ function exportChat() {
             :class="['et-tab', { active: editorTab === 'exercise' }]"
             @click="editorTab = 'exercise'"
           >练习</button>
-          <button class="et-collapse" title="收起代码区" @click="toggleEditor">收起 ⟩</button>
+          <button class="et-collapse" :title="isMobile ? '返回对话' : '收起代码区'" @click="toggleEditor">
+            {{ isMobile ? '返回对话 ⟩' : '收起 ⟩' }}
+          </button>
         </div>
 
         <div v-show="editorTab === 'editor'" style="display:flex;flex-direction:column;flex:1;min-height:0">
@@ -711,6 +715,7 @@ function exportChat() {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh; /* 移动端浏览器地址栏收起/展开时避免闪动 */
   position: relative;
   z-index: 1;
 }
@@ -1216,9 +1221,15 @@ function exportChat() {
 
 /* Responsive: Mobile */
 @media (max-width: 768px) {
+  .chat-page {
+    overflow-x: hidden;
+  }
   .main-area {
     display: flex;
     flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
   }
   /* Sidebar becomes a fixed drawer with a backdrop */
   .sidebar {
@@ -1240,52 +1251,100 @@ function exportChat() {
     z-index: 90;
   }
   .chat-panel {
-    flex: 1 1 45%;
+    flex: 1 1 auto;
     min-height: 0;
     border-right: none;
   }
+  /* 代码区在手机上以全屏浮层呈现：避免上下分屏导致编辑器太小、点不到 */
   .editor-panel {
-    flex: 1 1 auto;
-    min-height: 35vh;
-    border-top: 1px solid var(--bg-tertiary);
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    border-top: none;
   }
+  .editor-tabs {
+    flex-shrink: 0;
+  }
+
+  /* 顶栏：保持单行，右侧按钮横向滑动，避免换行占掉半个屏幕 */
   .topbar {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 6px;
-    padding: 8px 10px;
+    padding: 6px 8px;
+  }
+  .topbar-left {
+    flex-shrink: 0;
+  }
+  .logo {
+    font-size: 13px;
+    max-width: 92px;
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .topbar-right {
-    gap: 6px;
+    gap: 4px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    min-width: 0;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
   }
+  .topbar-right::-webkit-scrollbar { display: none; }
   .top-btn {
     font-size: 11px;
-    padding: 3px 8px;
+    padding: 3px 7px;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .particle-ctl {
+    flex-shrink: 0;
     padding: 2px 6px;
     gap: 3px;
   }
-  .particle-range {
-    width: 52px;
-  }
-  .user-info {
-    display: none;
-  }
-  .logo {
-    font-size: 14px;
-  }
+  .particle-range { width: 52px; }
+  .user-info { display: none; }
   .sidebar-toggle {
     display: inline-flex;
     font-size: 12px;
-    padding: 2px 6px;
+    padding: 2px 4px;
   }
-  .editor-header select {
-    font-size: 12px;
-    padding: 4px 8px;
+
+  /* 对话区 */
+  .chat-messages { padding: 12px 10px 4px; }
+  .message { gap: 6px; margin-bottom: 12px; }
+  .avatar { width: 28px; height: 28px; }
+  .avatar svg { width: 16px; height: 16px; }
+  .message.user .msg-content { max-width: 78%; font-size: 14px; padding: 8px 12px; }
+  .message.assistant .msg-content {
+    max-width: calc(100% - 76px);
+    font-size: 14px;
+    padding: 10px 12px;
   }
-  .btn-run, .btn-debug {
-    font-size: 11px;
-    padding: 4px 10px;
+  .msg-actions { flex-direction: column; }
+  .welcome { padding: 12px 4px; }
+  .welcome h2 { font-size: 19px; }
+  .welcome-icons { gap: 6px; margin-bottom: 14px; }
+  .w-icon { font-size: 22px; }
+  .welcome-grid { grid-template-columns: 1fr; max-width: 100%; }
+  .w-card { padding: 11px 12px; }
+
+  /* 输入区：16px 字号防止 iOS 聚焦时自动放大；底部留出安全区 */
+  .chat-input {
+    gap: 6px;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
   }
+  .chat-textarea { font-size: 16px; padding: 9px 12px; }
+  .send-btn { padding: 10px 14px; }
+
+  /* 代码区顶部工具条 */
+  .editor-header select { font-size: 12px; padding: 4px 8px; min-width: 0; }
+  .btn-run, .btn-debug { font-size: 11px; padding: 4px 10px; }
+  .editor-reopen { padding: 12px 4px; font-size: 11px; }
 }
+
 </style>

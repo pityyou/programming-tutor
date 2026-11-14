@@ -453,4 +453,24 @@ h1 {
   font-size: 13px;
   color: var(--text-secondary);
 }
+/* Responsive: Mobile */
+@media (max-width: 768px) {
+  .login-page {
+    align-items: flex-start;
+    padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+    min-height: 100vh;
+    min-height: 100dvh;
+    box-sizing: border-box;
+  }
+  .login-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 24px 18px;
+    border-radius: 12px;
+  }
+  .field input, .code-input { font-size: 16px; } /* 16px 防止 iOS 聚焦时自动放大 */
+  .code-row { gap: 6px; }
+  .code-btn { font-size: 12px; padding: 0 10px; }
+  .login-card h1, .login-card .subtitle { text-align: center; }
+}
 </style>

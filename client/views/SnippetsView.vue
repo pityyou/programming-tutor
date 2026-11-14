@@ -146,4 +146,16 @@ h1 { font-size: 22px; }
   background: var(--bg-tertiary); color: var(--text-primary); font-size: 11px; cursor: pointer;
 }
 .snip-actions button.del { color: #f38ba8; border-color: #f38ba866; }
+/* Responsive: Mobile */
+@media (max-width: 768px) {
+  .topbar { padding: 8px 12px; gap: 8px; flex-wrap: wrap; }
+  .logo { font-size: 15px; }
+  .topbar-right { gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .snip-content { padding: 16px 12px; }
+  h1 { font-size: 19px; }
+  .snip-header-row { gap: 8px; margin-bottom: 14px; }
+  .search-input { width: 100%; }
+  .snip-grid { grid-template-columns: 1fr; gap: 12px; }
+  .snip-code { font-size: 11px; }
+}
 </style>
